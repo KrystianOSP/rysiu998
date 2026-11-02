@@ -1,10 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel administratora - Rysiu998</title>
-
     <style>
         body {
             background: #0b1424;
@@ -14,11 +14,7 @@
             max-width: 800px;
             margin: auto;
         }
-
-        h1, h2 {
-            color: #ff3333;
-        }
-
+        h1, h2 { color: #ff3333; }
         input, textarea, select {
             display: block;
             width: 100%;
@@ -30,7 +26,7 @@
             background: #18243a;
             color: white;
         }
-
+        input[type="file"] { padding: 9px; }
         button {
             background: #e32636;
             color: white;
@@ -40,586 +36,931 @@
             cursor: pointer;
             margin: 5px;
         }
-
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
+        button:disabled { opacity: .6; cursor: wait; }
         .wpis {
             background: #18243a;
             padding: 18px;
             margin: 15px 0;
             border-radius: 8px;
         }
-
-        .zdjecie {
-            display: inline-block;
-            width: 150px;
-            margin: 8px;
-            vertical-align: top;
-            background: #18243a;
-            padding: 8px;
-            border-radius: 8px;
+        .zdjecie-admina {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            border-top: 1px solid #39465b;
+            padding: 10px 0;
         }
-
-        .zdjecie img {
-            width: 100%;
-            height: 120px;
+        .zdjecie-admina img {
+            width: 100px;
+            height: 75px;
             object-fit: cover;
-            border-radius: 5px;
+            border-radius: 6px;
         }
-
-        #panel {
-            display: none;
-        }
-
-        .sekcja {
-            margin-top: 35px;
-            padding-top: 20px;
-            border-top: 1px solid #445;
-        }
-
-        #statusZdjec {
-            margin: 12px 0;
-            color: #ffaaaa;
-        }
+        #panel { display: none; }
+        .informacja { color: #cbd5e1; font-size: 14px; }
     </style>
 </head>
 <body>
 
-    <h1>🔐 Panel administratora</h1>
+<h1>🔐 Panel administratora</h1>
 
-    <div id="logowanie">
-        <h2>Logowanie</h2>
-        <input id="email" type="email" placeholder="Adres e-mail">
-        <input id="haslo" type="password" placeholder="Hasło">
-        <button onclick="zaloguj()">Zaloguj się</button>
-    </div>
+<div id="logowanie">
+    <h2>Logowanie</h2>
+    <input id="email" type="email" placeholder="Adres e-mail">
+    <input id="haslo" type="password" placeholder="Hasło">
+    <button id="przyciskLogowania" onclick="zaloguj()">Zaloguj się</button>
+</div>
 
-    <div id="panel">
+<div id="panel">
 
-        <div class="sekcja">
-            <h2>📝 Dodaj lub edytuj akcję</h2>
+    <h2>Dodaj lub edytuj akcję</h2>
+    <form id="formularz">
+        <input id="tytul" type="text" placeholder="Tytuł akcji" required>
+        <label for="data">Data zdarzenia:</label>
+        <input id="data" type="date" required>
+        <input id="miejsce" type="text" placeholder="Miejsce">
+        <textarea id="opis" placeholder="Opis akcji" rows="5" required></textarea>
+        <button type="submit">Zapisz akcję</button>
+        <button type="button" onclick="wyczyscFormularz()">Wyczyść formularz</button>
+    </form>
 
-            <form id="formularz">
-                <input id="tytul" type="text" placeholder="Tytuł akcji" required>
+    <h2>📰 Zarządzanie aktualnościami</h2>
 
-                <label>Data zdarzenia:</label>
-                <input id="data" type="date" required>
+    <form id="formularzAktualnosci">
+        <input id="tytulAktualnosci"
+               type="text"
+               placeholder="Tytuł aktualności"
+               required>
 
-                <input id="miejsce" type="text" placeholder="Miejsce">
+        <label for="dataAktualnosci">Data publikacji:</label>
+        <input id="dataAktualnosci" type="date" required>
 
-                <textarea id="opis" placeholder="Opis akcji" rows="5" required></textarea>
+        <textarea id="trescAktualnosci"
+                  placeholder="Treść aktualności"
+                  rows="5"
+                  required></textarea>
 
-                <button type="submit">Zapisz akcję</button>
-                <button type="button" onclick="wyczyscFormularz()">Wyczyść formularz</button>
-            </form>
+        <label for="zdjecieAktualnosci">Zdjęcie aktualności:</label>
+        <input id="zdjecieAktualnosci" type="file" accept="image/*">
 
-            <h2>📋 Istniejące akcje</h2>
-            <div id="listaAdmina"></div>
-        </div>
+        <button type="submit">Zapisz aktualność</button>
 
-        <div class="sekcja">
-            <h2>📸 Zarządzanie galerią</h2>
+        <button type="button" onclick="wyczyscAktualnosc()">
+            Wyczyść formularz
+        </button>
+    </form>
 
-            <h3>Utwórz nowy album</h3>
+    <h3>Opublikowane aktualności</h3>
+    <div id="listaAktualnosci">Ładowanie aktualności...</div>
 
-            <form id="formularzAlbumu">
-                <input id="nazwaAlbumu" type="text"
-                    placeholder="Nazwa albumu, np. Pożar domu" required>
+    <hr style="margin:30px 0;">
 
-                <input id="opisAlbumu" type="text"
-                    placeholder="Krótki opis albumu">
+    <hr style="margin:30px 0;">
 
-                <button type="submit">Utwórz album</button>
-            </form>
+<hr style="margin:30px 0;">
 
-            <h3>Istniejące albumy</h3>
-            <div id="listaAlbumow">Ładowanie albumów...</div>
-        </div>
+<h2>🚒 Zarządzanie samochodami</h2>
 
-        <div class="sekcja">
-            <h2>📤 Dodaj zdjęcia do albumu</h2>
+<form id="formularzSprzetu">
 
-            <label>Wybierz album:</label>
-            <select id="wyborAlbumu">
-                <option value="">Ładowanie albumów...</option>
-            </select>
+    <input
+        type="text"
+        id="nazwaSprzetu"
+        placeholder="Nazwa samochodu, np. GCBA MAN"
+        required
+    >
 
-            <label>Wybierz zdjęcia:</label>
-            <input id="plikiZdjec" type="file"
-                accept="image/*" multiple>
+    <textarea
+        id="opisSprzetu"
+        placeholder="Opis samochodu i jego wyposażenia"
+        rows="5"
+        required
+    ></textarea>
 
-            <button id="przyciskDodajZdjecia" onclick="dodajZdjecia()">
-                Dodaj zdjęcia
-            </button>
+    <label for="zdjecieSprzetu">Zdjęcie samochodu:</label>
+    <input
+        type="file"
+        id="zdjecieSprzetu"
+        accept="image/*"
+    >
 
-            <div id="statusZdjec"></div>
+    <button type="submit">Zapisz samochód</button>
 
-            <h3>Zdjęcia w wybranym albumie</h3>
-            <div id="listaZdjec"></div>
-        </div>
+    <button type="button" onclick="wyczyscSprzet()">
+        Wyczyść formularz
+    </button>
 
-        <button onclick="wyloguj()">Wyloguj się</button>
-    </div>
+</form>
 
-    <p><a href="index.html" style="color:white;">← Powrót na stronę</a></p>
+<h3>Dodane samochody</h3>
+<div id="listaSprzetu">Ładowanie samochodów...</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="supabase.js"></script>
+<hr style="margin:30px 0;">
+    
+    <h2>📸 Zarządzanie galerią</h2>
 
-    <script>
-        const ADMIN_ID = "2447a762-936a-4ba0-9c29-f55f41a4eca9";
-        const BUCKET = "zdjecia-akcji";
+    <h3>Utwórz nowy album</h3>
+    <form id="formularzAlbumu">
+        <input id="nazwaAlbumu" type="text" placeholder="Nazwa albumu" required>
+        <input id="opisAlbumu" type="text" placeholder="Krótki opis albumu">
+        <button type="submit">Utwórz album</button>
+    </form>
 
-        let edytowaneId = null;
+    <h3>Istniejące albumy</h3>
+    <div id="listaAlbumow">Ładowanie albumów...</div>
 
-        // LOGOWANIE
+    <hr style="margin:30px 0;">
 
-        async function zaloguj() {
-            const email = document.getElementById("email").value;
-            const haslo = document.getElementById("haslo").value;
+    <h2>📤 Dodaj zdjęcia do albumu</h2>
 
-            const { data, error } =
-                await supabaseClient.auth.signInWithPassword({
-                    email: email,
-                    password: haslo
-                });
+    <label for="wyborAlbumu">Wybierz album:</label>
+    <select id="wyborAlbumu">
+        <option value="">Najpierw wybierz album</option>
+    </select>
 
-            if (error) {
-                alert("Błąd logowania: " + error.message);
-                return;
-            }
+    <label for="plikiZdjec">Wybierz zdjęcia (możesz zaznaczyć kilka):</label>
+    <input id="plikiZdjec" type="file" accept="image/*" multiple>
 
-            if (data.user.id !== ADMIN_ID) {
-                await supabaseClient.auth.signOut();
-                alert("To konto nie ma uprawnień administratora.");
-                return;
-            }
+    <p class="informacja">Maksymalny rozmiar jednego zdjęcia: 10 MB.</p>
 
-            pokazPanel();
+    <button id="przyciskDodawaniaZdjec" type="button" onclick="dodajZdjecia()">
+        Dodaj zdjęcia
+    </button>
+
+    <h3>Zdjęcia w wybranym albumie</h3>
+    <div id="listaZdjec">Wybierz album, aby zobaczyć zdjęcia.</div>
+
+    <hr style="margin:30px 0;">
+
+    <h2>📋 Istniejące akcje</h2>
+    <div id="listaAdmina"></div>
+
+    <button onclick="wyloguj()">Wyloguj się</button>
+</div>
+
+<p><a href="index.html" style="color:white;">← Powrót na stronę</a></p>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+
+<script>
+const ADMIN_ID = "2447a762-936a-4ba0-9c29-f55f41a4eca9";
+const BUCKET_ZDJEC = "zdjecia-akcji";
+let edytowaneId = null;
+
+async function zaloguj() {
+    const email = document.getElementById("email").value;
+    const haslo = document.getElementById("haslo").value;
+    const przycisk = document.getElementById("przyciskLogowania");
+
+    przycisk.disabled = true;
+
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+        email: email,
+        password: haslo
+    });
+
+    przycisk.disabled = false;
+
+    if (error) {
+        alert("Błąd logowania: " + error.message);
+        return;
+    }
+
+    if (!data.user || data.user.id !== ADMIN_ID) {
+        await supabaseClient.auth.signOut();
+        alert("To konto nie ma uprawnień administratora.");
+        return;
+    }
+
+    pokazPanel();
+}
+
+async function sprawdzLogowanie() {
+    const { data, error } = await supabaseClient.auth.getUser();
+
+    if (!error && data.user && data.user.id === ADMIN_ID) {
+        pokazPanel();
+    }
+}
+
+function pokazPanel() {
+    document.getElementById("logowanie").style.display = "none";
+    document.getElementById("panel").style.display = "block";
+    pobierzListeAdmina();
+    pobierzAlbumy();
+    pobierzAktualnosciAdmina();
+    pobierzSprzetAdmina();
+}
+
+async function wyloguj() {
+    await supabaseClient.auth.signOut();
+    location.reload();
+}
+
+function wyczyscFormularz() {
+    document.getElementById("formularz").reset();
+    edytowaneId = null;
+}
+
+document.getElementById("formularz").addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    const wpis = {
+        tytul: document.getElementById("tytul").value,
+        data_zdarzenia: document.getElementById("data").value,
+        miejsce: document.getElementById("miejsce").value,
+        opis: document.getElementById("opis").value
+    };
+
+    let wynik;
+
+    if (edytowaneId === null) {
+        wynik = await supabaseClient.from("akcje").insert(wpis);
+    } else {
+        wynik = await supabaseClient.from("akcje").update(wpis).eq("id", edytowaneId);
+    }
+
+    if (wynik.error) {
+        alert("Nie udało się zapisać: " + wynik.error.message);
+        return;
+    }
+
+    alert("Akcja została zapisana!");
+    wyczyscFormularz();
+    pobierzListeAdmina();
+});
+
+async function pobierzListeAdmina() {
+    const lista = document.getElementById("listaAdmina");
+
+    const { data, error } = await supabaseClient
+        .from("akcje")
+        .select("*")
+        .order("data_zdarzenia", { ascending: false })
+        .order("created_at", { ascending: false });
+
+    if (error) {
+        lista.textContent = "Nie udało się pobrać akcji: " + error.message;
+        return;
+    }
+
+    lista.innerHTML = "";
+
+    data.forEach(akcja => {
+        const wpis = document.createElement("div");
+        wpis.className = "wpis";
+
+        const tytul = document.createElement("h3");
+        tytul.textContent = akcja.tytul;
+
+        const opis = document.createElement("p");
+        opis.textContent = akcja.opis;
+
+        const edytuj = document.createElement("button");
+        edytuj.textContent = "Edytuj";
+
+        edytuj.onclick = () => {
+            document.getElementById("tytul").value = akcja.tytul;
+            document.getElementById("data").value = akcja.data_zdarzenia;
+            document.getElementById("miejsce").value = akcja.miejsce || "";
+            document.getElementById("opis").value = akcja.opis;
+            edytowaneId = akcja.id;
+            window.scrollTo(0, 0);
+        };
+
+        const usun = document.createElement("button");
+        usun.textContent = "Usuń";
+        usun.onclick = () => usunAkcje(akcja.id);
+
+        wpis.append(tytul, opis, edytuj, usun);
+        lista.appendChild(wpis);
+    });
+
+    if (data.length === 0) {
+        lista.textContent = "Nie dodano jeszcze żadnych akcji.";
+    }
+}
+
+async function usunAkcje(id) {
+    if (!confirm("Czy na pewno chcesz usunąć tę akcję?")) return;
+
+    const { error } = await supabaseClient.from("akcje").delete().eq("id", id);
+
+    if (error) {
+        alert("Nie udało się usunąć: " + error.message);
+        return;
+    }
+
+    alert("Akcja została usunięta.");
+    pobierzListeAdmina();
+}
+
+async function pobierzAlbumy() {
+    const lista = document.getElementById("listaAlbumow");
+    const wybor = document.getElementById("wyborAlbumu");
+
+    const { data, error } = await supabaseClient
+        .from("albumy")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+    if (error) {
+        lista.textContent = "Nie udało się pobrać albumów: " + error.message;
+        return;
+    }
+
+    lista.innerHTML = "";
+    const poprzedniWybor = wybor.value;
+    wybor.innerHTML = '<option value="">Wybierz album</option>';
+
+    data.forEach(album => {
+        const opcja = document.createElement("option");
+        opcja.value = album.id;
+        opcja.textContent = album.nazwa;
+        wybor.appendChild(opcja);
+
+        const wpis = document.createElement("div");
+        wpis.className = "wpis";
+
+        const nazwa = document.createElement("h3");
+        nazwa.textContent = "📁 " + album.nazwa;
+
+        const opis = document.createElement("p");
+        opis.textContent = album.opis || "";
+
+        const usun = document.createElement("button");
+        usun.textContent = "Usuń album";
+        usun.onclick = () => usunAlbum(album.id);
+
+        wpis.append(nazwa, opis, usun);
+        lista.appendChild(wpis);
+    });
+
+    if (data.length === 0) {
+        lista.textContent = "Nie utworzono jeszcze żadnych albumów.";
+        document.getElementById("listaZdjec").textContent = "Najpierw utwórz album.";
+    }
+
+    if (data.some(album => String(album.id) === poprzedniWybor)) {
+        wybor.value = poprzedniWybor;
+    } else if (data.length > 0) {
+        wybor.value = String(data[0].id);
+    }
+
+    if (wybor.value) await pobierzZdjecia();
+}
+
+document.getElementById("wyborAlbumu").addEventListener("change", pobierzZdjecia);
+
+document.getElementById("formularzAlbumu").addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    const nazwa = document.getElementById("nazwaAlbumu").value.trim();
+    const opis = document.getElementById("opisAlbumu").value.trim();
+
+    const { error } = await supabaseClient.from("albumy").insert({ nazwa, opis });
+
+    if (error) {
+        alert("Nie udało się utworzyć albumu: " + error.message);
+        return;
+    }
+
+    alert("Album został utworzony!");
+    this.reset();
+    pobierzAlbumy();
+});
+
+async function dodajZdjecia() {
+    const albumId = document.getElementById("wyborAlbumu").value;
+    const polePlikow = document.getElementById("plikiZdjec");
+    const pliki = Array.from(polePlikow.files);
+    const przycisk = document.getElementById("przyciskDodawaniaZdjec");
+
+    if (!albumId) {
+        alert("Najpierw wybierz album.");
+        return;
+    }
+
+    if (pliki.length === 0) {
+        alert("Najpierw wybierz przynajmniej jedno zdjęcie.");
+        return;
+    }
+
+    for (const plik of pliki) {
+        if (!plik.type.startsWith("image/")) {
+            alert("Plik „" + plik.name + "” nie jest zdjęciem.");
+            return;
         }
 
-        async function sprawdzLogowanie() {
-            const { data } = await supabaseClient.auth.getUser();
-
-            if (data.user && data.user.id === ADMIN_ID) {
-                pokazPanel();
-            }
+        if (plik.size > 10 * 1024 * 1024) {
+            alert("Plik „" + plik.name + "” przekracza limit 10 MB.");
+            return;
         }
+    }
 
-        function pokazPanel() {
-            document.getElementById("logowanie").style.display = "none";
-            document.getElementById("panel").style.display = "block";
+    przycisk.disabled = true;
+    przycisk.textContent = "Dodawanie zdjęć...";
 
-            pobierzListeAdmina();
-            pobierzAlbumy();
-        }
+    let dodano = 0;
+    let bledy = [];
 
-        async function wyloguj() {
-            await supabaseClient.auth.signOut();
-            location.reload();
-        }
+    for (const plik of pliki) {
+        const bezpiecznaNazwa = plik.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+        const sciezka = albumId + "/" + Date.now() + "_" +
+            Math.random().toString(36).slice(2) + "_" + bezpiecznaNazwa;
 
-        // AKCJE
-
-        function wyczyscFormularz() {
-            document.getElementById("formularz").reset();
-            edytowaneId = null;
-        }
-
-        document.getElementById("formularz")
-            .addEventListener("submit", async function(e) {
-                e.preventDefault();
-
-                const wpis = {
-                    tytul: document.getElementById("tytul").value,
-                    data_zdarzenia: document.getElementById("data").value,
-                    miejsce: document.getElementById("miejsce").value,
-                    opis: document.getElementById("opis").value
-                };
-
-                let wynik;
-
-                if (edytowaneId === null) {
-                    wynik = await supabaseClient.from("akcje").insert(wpis);
-                } else {
-                    wynik = await supabaseClient.from("akcje")
-                        .update(wpis)
-                        .eq("id", edytowaneId);
-                }
-
-                if (wynik.error) {
-                    alert("Nie udało się zapisać: " + wynik.error.message);
-                    return;
-                }
-
-                alert("Akcja została zapisana!");
-                wyczyscFormularz();
-                pobierzListeAdmina();
+        const { error: bladWysylania } = await supabaseClient.storage
+            .from(BUCKET_ZDJEC)
+            .upload(sciezka, plik, {
+                cacheControl: "3600",
+                contentType: plik.type,
+                upsert: false
             });
 
-        async function pobierzListeAdmina() {
-            const lista = document.getElementById("listaAdmina");
+        if (bladWysylania) {
+            bledy.push(plik.name + ": " + bladWysylania.message);
+            continue;
+        }
 
-            const { data, error } = await supabaseClient
-                .from("akcje")
-                .select("*")
-                .order("data_zdarzenia", { ascending: false })
-                .order("created_at", { ascending: false });
-
-            if (error) {
-                lista.textContent = "Nie udało się pobrać akcji.";
-                return;
-            }
-
-            lista.innerHTML = "";
-
-            data.forEach(akcja => {
-                const wpis = document.createElement("div");
-                wpis.className = "wpis";
-
-                const tytul = document.createElement("h3");
-                tytul.textContent = akcja.tytul;
-
-                const opis = document.createElement("p");
-                opis.textContent = akcja.opis;
-
-                const edytuj = document.createElement("button");
-                edytuj.textContent = "Edytuj";
-
-                edytuj.onclick = () => {
-                    document.getElementById("tytul").value = akcja.tytul;
-                    document.getElementById("data").value = akcja.data_zdarzenia;
-                    document.getElementById("miejsce").value = akcja.miejsce || "";
-                    document.getElementById("opis").value = akcja.opis;
-                    edytowaneId = akcja.id;
-                    window.scrollTo(0, 0);
-                };
-
-                const usun = document.createElement("button");
-                usun.textContent = "Usuń";
-                usun.onclick = () => usunAkcje(akcja.id);
-
-                wpis.append(tytul, opis, edytuj, usun);
-                lista.appendChild(wpis);
+        const { error: bladBazy } = await supabaseClient
+            .from("zdjecia_galerii")
+            .insert({
+                album_id: Number(albumId),
+                nazwa_pliku: plik.name,
+                sciezka: sciezka
             });
 
-            if (data.length === 0) {
-                lista.textContent = "Nie dodano jeszcze żadnych akcji.";
-            }
+        if (bladBazy) {
+            await supabaseClient.storage.from(BUCKET_ZDJEC).remove([sciezka]);
+            bledy.push(plik.name + ": " + bladBazy.message);
+            continue;
         }
 
-        async function usunAkcje(id) {
-            if (!confirm("Czy na pewno chcesz usunąć tę akcję?")) return;
+        dodano++;
+    }
 
-            const { error } = await supabaseClient
-                .from("akcje")
-                .delete()
-                .eq("id", id);
+    przycisk.disabled = false;
+    przycisk.textContent = "Dodaj zdjęcia";
+    polePlikow.value = "";
 
-            if (error) {
-                alert("Nie udało się usunąć: " + error.message);
-                return;
-            }
+    await pobierzZdjecia();
 
-            alert("Akcja została usunięta.");
-            pobierzListeAdmina();
+    let komunikat = "Dodano zdjęć: " + dodano + " z " + pliki.length + ".";
+    if (bledy.length) komunikat += "\n\nBłędy:\n" + bledy.join("\n");
+    alert(komunikat);
+}
+
+async function pobierzZdjecia() {
+    const albumId = document.getElementById("wyborAlbumu").value;
+    const lista = document.getElementById("listaZdjec");
+
+    if (!albumId) {
+        lista.textContent = "Wybierz album, aby zobaczyć zdjęcia.";
+        return;
+    }
+
+    lista.textContent = "Ładowanie zdjęć...";
+
+    const { data, error } = await supabaseClient
+        .from("zdjecia_galerii")
+        .select("*")
+        .eq("album_id", Number(albumId))
+        .order("created_at", { ascending: false });
+
+    if (error) {
+        lista.textContent = "Nie udało się pobrać zdjęć: " + error.message;
+        return;
+    }
+
+    lista.innerHTML = "";
+
+    if (data.length === 0) {
+        lista.textContent = "W tym albumie nie ma jeszcze zdjęć.";
+        return;
+    }
+
+    for (const zdjecie of data) {
+        const { data: urlData } = supabaseClient.storage
+            .from(BUCKET_ZDJEC)
+            .getPublicUrl(zdjecie.sciezka);
+
+        const wiersz = document.createElement("div");
+        wiersz.className = "zdjecie-admina";
+
+        const miniatura = document.createElement("img");
+        miniatura.src = urlData.publicUrl;
+        miniatura.alt = zdjecie.nazwa_pliku;
+
+        const nazwa = document.createElement("span");
+        nazwa.textContent = zdjecie.nazwa_pliku;
+
+        const usun = document.createElement("button");
+        usun.textContent = "Usuń zdjęcie";
+        usun.onclick = () => usunZdjecie(zdjecie.id, zdjecie.sciezka);
+
+        wiersz.append(miniatura, nazwa, usun);
+        lista.appendChild(wiersz);
+    }
+}
+
+async function usunZdjecie(id, sciezka) {
+    if (!confirm("Czy na pewno usunąć to zdjęcie?")) return;
+
+    const { error: bladPliku } = await supabaseClient.storage
+        .from(BUCKET_ZDJEC)
+        .remove([sciezka]);
+
+    if (bladPliku) {
+        alert("Nie udało się usunąć pliku: " + bladPliku.message);
+        return;
+    }
+
+    const { error: bladBazy } = await supabaseClient
+        .from("zdjecia_galerii")
+        .delete()
+        .eq("id", id);
+
+    if (bladBazy) {
+        alert("Plik usunięto, ale nie udało się usunąć wpisu z bazy: " + bladBazy.message);
+        return;
+    }
+
+    await pobierzZdjecia();
+}
+
+async function usunAlbum(id) {
+    if (!confirm("Czy na pewno usunąć ten album i wszystkie jego zdjęcia?")) return;
+
+    const { data: zdjecia, error: bladPobierania } = await supabaseClient
+        .from("zdjecia_galerii")
+        .select("sciezka")
+        .eq("album_id", id);
+
+    if (bladPobierania) {
+        alert("Nie udało się sprawdzić zdjęć albumu: " + bladPobierania.message);
+        return;
+    }
+
+    if (zdjecia.length > 0) {
+        const sciezki = zdjecia.map(zdjecie => zdjecie.sciezka);
+
+        const { error: bladUsuwania } = await supabaseClient.storage
+            .from(BUCKET_ZDJEC)
+            .remove(sciezki);
+
+        if (bladUsuwania) {
+            alert("Nie udało się usunąć plików zdjęć: " + bladUsuwania.message);
+            return;
+        }
+    }
+
+    const { error } = await supabaseClient.from("albumy").delete().eq("id", id);
+
+    if (error) {
+        alert("Nie udało się usunąć albumu: " + error.message);
+        return;
+    }
+
+    alert("Album został usunięty.");
+    await pobierzAlbumy();
+}
+
+let edytowanaAktualnoscId = null;
+let obecnaSciezkaZdjecia = null;
+
+async function pobierzAktualnosciAdmina() {
+    const lista = document.getElementById("listaAktualnosci");
+
+    const { data, error } = await supabaseClient
+        .from("aktualnosci")
+        .select("*")
+        .order("data_publikacji", { ascending: false });
+
+    if (error) {
+        lista.textContent = "Błąd pobierania: " + error.message;
+        return;
+    }
+
+    lista.innerHTML = "";
+
+    if (!data || data.length === 0) {
+        lista.textContent = "Nie dodano jeszcze aktualności.";
+        return;
+    }
+
+    data.forEach(wpis => {
+        const karta = document.createElement("div");
+        karta.className = "wpis";
+
+        const tytul = document.createElement("h3");
+        tytul.textContent = wpis.tytul;
+
+        const dataWpisu = document.createElement("p");
+        dataWpisu.textContent = "📅 " + wpis.data_publikacji;
+
+        const tresc = document.createElement("p");
+        tresc.textContent = wpis.tresc;
+
+        karta.append(tytul, dataWpisu, tresc);
+
+        if (wpis.zdjecie_sciezka) {
+            const { data: urlData } = supabaseClient.storage
+                .from(BUCKET_ZDJEC)
+                .getPublicUrl(wpis.zdjecie_sciezka);
+
+            const img = document.createElement("img");
+            img.src = urlData.publicUrl;
+            img.style.cssText = "width:180px;max-width:100%;border-radius:10px;margin-top:10px;";
+            karta.appendChild(img);
         }
 
-        // ALBUMY
+        const edytuj = document.createElement("button");
+        edytuj.textContent = "Edytuj";
 
-        async function pobierzAlbumy() {
-            const lista = document.getElementById("listaAlbumow");
-            const wybor = document.getElementById("wyborAlbumu");
+        edytuj.onclick = () => {
+            document.getElementById("tytulAktualnosci").value = wpis.tytul;
+            document.getElementById("dataAktualnosci").value = wpis.data_publikacji;
+            document.getElementById("trescAktualnosci").value = wpis.tresc;
 
-            const { data, error } = await supabaseClient
-                .from("albumy")
-                .select("*")
-                .order("created_at", { ascending: false });
+            edytowanaAktualnoscId = wpis.id;
+            obecnaSciezkaZdjecia = wpis.zdjecie_sciezka;
 
-            if (error) {
-                lista.textContent = "Nie udało się pobrać albumów.";
-                wybor.innerHTML = '<option value="">Błąd pobierania albumów</option>';
-                console.error(error);
-                return;
-            }
+            window.scrollTo(0, 0);
+        };
 
-            lista.innerHTML = "";
-            wybor.innerHTML = "";
+        const usun = document.createElement("button");
+        usun.textContent = "Usuń";
+        usun.onclick = () => usunAktualnosc(wpis.id, wpis.zdjecie_sciezka);
 
-            const opcja = document.createElement("option");
-            opcja.value = "";
-            opcja.textContent = "Wybierz album";
-            wybor.appendChild(opcja);
+        karta.append(edytuj, usun);
+        lista.appendChild(karta);
+    });
+}
 
-            data.forEach(album => {
-                const option = document.createElement("option");
-                option.value = album.id;
-                option.textContent = album.nazwa;
-                wybor.appendChild(option);
+function wyczyscAktualnosc() {
+    document.getElementById("formularzAktualnosci").reset();
+    edytowanaAktualnoscId = null;
+    obecnaSciezkaZdjecia = null;
+}
 
-                const wpis = document.createElement("div");
-                wpis.className = "wpis";
+document.getElementById("formularzAktualnosci")
+.addEventListener("submit", async function(e) {
+    e.preventDefault();
 
-                const nazwa = document.createElement("h3");
-                nazwa.textContent = "📁 " + album.nazwa;
+    const tytul = document.getElementById("tytulAktualnosci").value.trim();
+    const data = document.getElementById("dataAktualnosci").value;
+    const tresc = document.getElementById("trescAktualnosci").value.trim();
+    const plik = document.getElementById("zdjecieAktualnosci").files[0];
 
-                const opis = document.createElement("p");
-                opis.textContent = album.opis || "";
+    let sciezkaZdjecia = obecnaSciezkaZdjecia;
 
-                const usun = document.createElement("button");
-                usun.textContent = "Usuń album";
-                usun.onclick = () => usunAlbum(album);
-
-                wpis.append(nazwa, opis, usun);
-                lista.appendChild(wpis);
-            });
-
-            if (data.length === 0) {
-                lista.textContent = "Nie utworzono jeszcze żadnych albumów.";
-            }
+    if (plik) {
+        if (!plik.type.startsWith("image/")) {
+            alert("Wybierz plik graficzny.");
+            return;
         }
 
-        document.getElementById("formularzAlbumu")
-            .addEventListener("submit", async function(e) {
-                e.preventDefault();
-
-                const nazwa = document.getElementById("nazwaAlbumu").value.trim();
-                const opis = document.getElementById("opisAlbumu").value.trim();
-
-                const { error } = await supabaseClient
-                    .from("albumy")
-                    .insert({ nazwa: nazwa, opis: opis });
-
-                if (error) {
-                    alert("Nie udało się utworzyć albumu: " + error.message);
-                    return;
-                }
-
-                alert("Album został utworzony!");
-                this.reset();
-                pobierzAlbumy();
-            });
-
-        async function usunAlbum(album) {
-            if (!confirm("Czy na pewno usunąć album i wszystkie jego zdjęcia?")) {
-                return;
-            }
-
-            const { data: zdjecia, error: bladPobierania } =
-                await supabaseClient
-                    .from("zdjecia_galerii")
-                    .select("sciezka")
-                    .eq("album_id", album.id);
-
-            if (bladPobierania) {
-                alert("Nie udało się pobrać zdjęć albumu: " + bladPobierania.message);
-                return;
-            }
-
-            if (zdjecia.length > 0) {
-                const { error: bladStorage } = await supabaseClient.storage
-                    .from(BUCKET)
-                    .remove(zdjecia.map(z => z.sciezka));
-
-                if (bladStorage) {
-                    alert("Nie udało się usunąć plików zdjęć: " + bladStorage.message);
-                    return;
-                }
-            }
-
-            const { error } = await supabaseClient
-                .from("albumy")
-                .delete()
-                .eq("id", album.id);
-
-            if (error) {
-                alert("Nie udało się usunąć albumu: " + error.message);
-                return;
-            }
-
-            document.getElementById("listaZdjec").innerHTML = "";
-            document.getElementById("wyborAlbumu").value = "";
-
-            alert("Album i jego zdjęcia zostały usunięte.");
-            pobierzAlbumy();
+        if (plik.size > 10 * 1024 * 1024) {
+            alert("Zdjęcie jest większe niż 10 MB.");
+            return;
         }
 
-        // ZDJĘCIA
+        const bezpiecznaNazwa = plik.name.replace(/[^a-zA-Z0-9._-]/g, "_");
 
-        document.getElementById("wyborAlbumu")
-            .addEventListener("change", pobierzZdjecia);
+        sciezkaZdjecia = "aktualnosci/" + Date.now() + "_" + bezpiecznaNazwa;
 
-        async function dodajZdjecia() {
-            const albumId = document.getElementById("wyborAlbumu").value;
-            const pliki = document.getElementById("plikiZdjec").files;
-            const status = document.getElementById("statusZdjec");
-            const przycisk = document.getElementById("przyciskDodajZdjecia");
+        const { error } = await supabaseClient.storage
+            .from(BUCKET_ZDJEC)
+            .upload(sciezkaZdjecia, plik);
 
-            if (!albumId) {
-                alert("Najpierw wybierz album.");
-                return;
-            }
+        if (error) {
+            alert("Błąd wysyłania zdjęcia: " + error.message);
+            return;
+        }
+    }
 
-            if (!pliki || pliki.length === 0) {
-                alert("Wybierz przynajmniej jedno zdjęcie.");
-                return;
-            }
+    const wpis = {
+        tytul: tytul,
+        data_publikacji: data,
+        tresc: tresc,
+        zdjecie_sciezka: sciezkaZdjecia
+    };
 
-            przycisk.disabled = true;
-            status.textContent = "Dodawanie zdjęć...";
+    let wynik;
 
-            const dodaneSciezki = [];
+    if (edytowanaAktualnoscId === null) {
+        wynik = await supabaseClient.from("aktualnosci").insert(wpis);
+    } else {
+        wynik = await supabaseClient
+            .from("aktualnosci")
+            .update(wpis)
+            .eq("id", edytowanaAktualnoscId);
+    }
 
-            try {
-                for (let i = 0; i < pliki.length; i++) {
-                    const plik = pliki[i];
+    if (wynik.error) {
+        alert("Błąd zapisywania: " + wynik.error.message);
+        return;
+    }
 
-                    if (!plik.type.startsWith("image/")) {
-                        throw new Error("Plik " + plik.name + " nie jest zdjęciem.");
-                    }
+    alert("Aktualność została zapisana!");
 
-                    if (plik.size > 10 * 1024 * 1024) {
-                        throw new Error("Plik " + plik.name + " przekracza limit 10 MB.");
-                    }
+    wyczyscAktualnosc();
+    await pobierzAktualnosciAdmina();
+});
 
-                    const bezpiecznaNazwa = plik.name.replace(/[^\w.-]/g, "_");
-                    const sciezka = albumId + "/" + crypto.randomUUID() + "-" + bezpiecznaNazwa;
+async function usunAktualnosc(id, sciezka) {
+    if (!confirm("Czy na pewno usunąć tę aktualność?")) return;
 
-                    const { error: bladUploadu } = await supabaseClient.storage
-                        .from(BUCKET)
-                        .upload(sciezka, plik, {
-                            cacheControl: "3600",
-                            upsert: false,
-                            contentType: plik.type
-                        });
+    const { error } = await supabaseClient
+        .from("aktualnosci")
+        .delete()
+        .eq("id", id);
 
-                    if (bladUploadu) {
-                        throw bladUploadu;
-                    }
+    if (error) {
+        alert("Błąd usuwania: " + error.message);
+        return;
+    }
 
-                    dodaneSciezki.push(sciezka);
+    if (sciezka) {
+        await supabaseClient.storage
+            .from(BUCKET_ZDJEC)
+            .remove([sciezka]);
+    }
 
-                    const { error: bladBazy } = await supabaseClient
-                        .from("zdjecia_galerii")
-                        .insert({
-                            album_id: Number(albumId),
-                            nazwa_pliku: plik.name,
-                            sciezka: sciezka
-                        });
+    alert("Aktualność została usunięta.");
+    await pobierzAktualnosciAdmina();
+}
 
-                    if (bladBazy) {
-                        await supabaseClient.storage.from(BUCKET).remove([sciezka]);
-                        dodaneSciezki.pop();
-                        throw bladBazy;
-                    }
 
-                    status.textContent = "Dodano " + (i + 1) + " z " + pliki.length + " zdjęć.";
-                }
+ let edytowanySprzetId = null;
+let obecnaSciezkaSprzetu = null;
 
-                document.getElementById("plikiZdjec").value = "";
-                alert("Zdjęcia zostały dodane!");
-                await pobierzZdjecia();
+async function pobierzSprzetAdmina() {
+    const lista = document.getElementById("listaSprzetu");
 
-            } catch (error) {
-                alert("Błąd dodawania zdjęć: " + error.message);
+    const { data, error } = await supabaseClient
+        .from("sprzet")
+        .select("*")
+        .order("created_at", { ascending: false });
 
-                if (dodaneSciezki.length > 0) {
-                    await supabaseClient.storage.from(BUCKET).remove(dodaneSciezki);
-                    await supabaseClient
-                        .from("zdjecia_galerii")
-                        .delete()
-                        .in("sciezka", dodaneSciezki);
-                }
+    if (error) {
+        lista.textContent = "Błąd pobierania: " + error.message;
+        return;
+    }
 
-            } finally {
-                przycisk.disabled = false;
-                status.textContent = "";
-            }
+    lista.innerHTML = "";
+
+    if (!data || data.length === 0) {
+        lista.textContent = "Nie dodano jeszcze żadnych samochodów.";
+        return;
+    }
+
+    data.forEach(pojazd => {
+        const karta = document.createElement("div");
+        karta.className = "wpis";
+
+        const nazwa = document.createElement("h3");
+        nazwa.textContent = pojazd.nazwa;
+
+        const opis = document.createElement("p");
+        opis.textContent = pojazd.opis;
+
+        karta.append(nazwa, opis);
+
+        if (pojazd.zdjecie_sciezka) {
+            const { data: urlData } = supabaseClient.storage
+                .from(BUCKET_ZDJEC)
+                .getPublicUrl(pojazd.zdjecie_sciezka);
+
+            const img = document.createElement("img");
+            img.src = urlData.publicUrl;
+            img.style.cssText = "width:220px;max-width:100%;border-radius:10px;margin:10px 0;";
+            karta.appendChild(img);
         }
 
-        async function pobierzZdjecia() {
-            const albumId = document.getElementById("wyborAlbumu").value;
-            const lista = document.getElementById("listaZdjec");
+        const edytuj = document.createElement("button");
+        edytuj.textContent = "Edytuj";
 
-            lista.innerHTML = "";
+        edytuj.onclick = () => {
+            document.getElementById("nazwaSprzetu").value = pojazd.nazwa;
+            document.getElementById("opisSprzetu").value = pojazd.opis;
 
-            if (!albumId) {
-                lista.textContent = "Wybierz album, aby zobaczyć zdjęcia.";
-                return;
-            }
+            edytowanySprzetId = pojazd.id;
+            obecnaSciezkaSprzetu = pojazd.zdjecie_sciezka;
 
-            const { data, error } = await supabaseClient
-                .from("zdjecia_galerii")
-                .select("*")
-                .eq("album_id", Number(albumId))
-                .order("created_at", { ascending: false });
+            window.scrollTo(0, 0);
+        };
 
-            if (error) {
-                lista.textContent = "Nie udało się pobrać zdjęć.";
-                console.error(error);
-                return;
-            }
+        const usun = document.createElement("button");
+        usun.textContent = "Usuń";
+        usun.onclick = () => usunSprzet(pojazd.id, pojazd.zdjecie_sciezka);
 
-            if (data.length === 0) {
-                lista.textContent = "W tym albumie nie ma jeszcze zdjęć.";
-                return;
-            }
+        karta.append(edytuj, usun);
+        lista.appendChild(karta);
+    });
+}
 
-            data.forEach(zdjecie => {
-                const url = supabaseClient.storage
-                    .from(BUCKET)
-                    .getPublicUrl(zdjecie.sciezka).data.publicUrl;
+function wyczyscSprzet() {
+    document.getElementById("formularzSprzetu").reset();
+    edytowanySprzetId = null;
+    obecnaSciezkaSprzetu = null;
+}
 
-                const karta = document.createElement("div");
-                karta.className = "zdjecie";
+document.getElementById("formularzSprzetu")
+.addEventListener("submit", async function(e) {
+    e.preventDefault();
 
-                const img = document.createElement("img");
-                img.src = url;
-                img.alt = zdjecie.nazwa_pliku;
+    const nazwa = document.getElementById("nazwaSprzetu").value.trim();
+    const opis = document.getElementById("opisSprzetu").value.trim();
+    const plik = document.getElementById("zdjecieSprzetu").files[0];
 
-                const nazwa = document.createElement("p");
-                nazwa.textContent = zdjecie.nazwa_pliku;
+    let sciezka = obecnaSciezkaSprzetu;
 
-                const usun = document.createElement("button");
-                usun.textContent = "Usuń";
-                usun.onclick = () => usunZdjecie(zdjecie);
-
-                karta.append(img, nazwa, usun);
-                lista.appendChild(karta);
-            });
+    if (plik) {
+        if (!plik.type.startsWith("image/")) {
+            alert("Wybierz plik graficzny.");
+            return;
         }
 
-        async function usunZdjecie(zdjecie) {
-            if (!confirm("Czy na pewno usunąć to zdjęcie?")) return;
-
-            const { error: bladStorage } = await supabaseClient.storage
-                .from(BUCKET)
-                .remove([zdjecie.sciezka]);
-
-            if (bladStorage) {
-                alert("Nie udało się usunąć pliku: " + bladStorage.message);
-                return;
-            }
-
-            const { error } = await supabaseClient
-                .from("zdjecia_galerii")
-                .delete()
-                .eq("id", zdjecie.id);
-
-            if (error) {
-                alert("Plik usunięto, ale nie udało się usunąć wpisu z bazy: " + error.message);
-                return;
-            }
-
-            alert("Zdjęcie zostało usunięte.");
-            pobierzZdjecia();
+        if (plik.size > 10 * 1024 * 1024) {
+            alert("Zdjęcie jest większe niż 10 MB.");
+            return;
         }
 
-        sprawdzLogowanie();
-    </script>
+        const bezpiecznaNazwa = plik.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+        sciezka = "sprzet/" + Date.now() + "_" + bezpiecznaNazwa;
+
+        const { error } = await supabaseClient.storage
+            .from(BUCKET_ZDJEC)
+            .upload(sciezka, plik);
+
+        if (error) {
+            alert("Błąd wysyłania zdjęcia: " + error.message);
+            return;
+        }
+    }
+
+    const wpis = {
+        nazwa: nazwa,
+        opis: opis,
+        zdjecie_sciezka: sciezka
+    };
+
+    let wynik;
+
+    if (edytowanySprzetId === null) {
+        wynik = await supabaseClient.from("sprzet").insert(wpis);
+    } else {
+        wynik = await supabaseClient
+            .from("sprzet")
+            .update(wpis)
+            .eq("id", edytowanySprzetId);
+    }
+
+    if (wynik.error) {
+        alert("Błąd zapisywania: " + wynik.error.message);
+        return;
+    }
+
+    if (plik && obecnaSciezkaSprzetu) {
+        await supabaseClient.storage
+            .from(BUCKET_ZDJEC)
+            .remove([obecnaSciezkaSprzetu]);
+    }
+
+    alert("Samochód został zapisany!");
+
+    wyczyscSprzet();
+    await pobierzSprzetAdmina();
+});
+
+async function usunSprzet(id, sciezka) {
+    if (!confirm("Czy na pewno usunąć ten samochód?")) return;
+
+    const { error } = await supabaseClient
+        .from("sprzet")
+        .delete()
+        .eq("id", id);
+
+    if (error) {
+        alert("Błąd usuwania: " + error.message);
+        return;
+    }
+
+    if (sciezka) {
+        await supabaseClient.storage
+            .from(BUCKET_ZDJEC)
+            .remove([sciezka]);
+    }
+
+    alert("Samochód został usunięty.");
+    await pobierzSprzetAdmina();
+}   
+sprawdzLogowanie();
+</script>
 
 </body>
 </html>

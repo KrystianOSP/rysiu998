@@ -1,16 +1,182 @@
+
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Galeria - Rysiu998</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Galeria - Rysiu998</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Segoe UI, sans-serif;
+}
+
+body {
+    background: linear-gradient(90deg, #13203f, #08162f, #13203f);
+    color: white;
+    min-height: 100vh;
+}
+
+header {
+    text-align: center;
+    padding: 45px 15px;
+}
+
+header h1 {
+    color: #ff4b4b;
+    font-size: 48px;
+    text-shadow: 0 0 20px #ff4b4b;
+}
+
+header p {
+    color: #cbd5e1;
+    margin-top: 12px;
+    font-size: 18px;
+}
+
+.powrot {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 13px 22px;
+    background: #ff4b4b;
+    color: white;
+    text-decoration: none;
+    border-radius: 12px;
+}
+
+.galeria {
+    max-width: 1200px;
+    margin: auto;
+    padding: 20px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+}
+
+.galeria img {
+    width: 100%;
+    height: 240px;
+    object-fit: cover;
+    border-radius: 16px;
+    border: 2px solid #ff4b4b;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.galeria img:hover {
+    transform: scale(1.03);
+    box-shadow: 0 0 20px #ff4b4b;
+}
+
+#podglad {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.92);
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+    z-index: 10;
+}
+
+#podglad img {
+    max-width: 95%;
+    max-height: 85vh;
+    object-fit: contain;
+    border: 2px solid #ff4b4b;
+    border-radius: 12px;
+}
+
+#zamknij {
+    position: absolute;
+    top: 15px;
+    right: 22px;
+    font-size: 40px;
+    color: white;
+    cursor: pointer;
+}
+
+footer {
+    text-align: center;
+    padding: 30px 15px;
+    margin-top: 40px;
+    background: #4d0000;
+    border-top: 3px solid #ff4b4b;
+}
+
+@media (max-width: 768px) {
+    header h1 {
+        font-size: 36px;
+    }
+
+    .galeria {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        padding: 12px;
+    }
+
+    .galeria img {
+        height: 150px;
+    }
+}
+</style>
 </head>
+
 <body>
-    <h1>Galeria zdjęć</h1>
 
-    <img src="zdjecia/akcja1.jpg" width="300">
-    <img src="zdjecia/akcja2.jpg" width="300">
+<header>
+    <h1>📷 Galeria Rysiu998</h1>
+    <p>Szkolenia • Akcje ratownicze • Ćwiczenia</p>
+    <a href="index.html" class="powrot">← Powrót na stronę główną</a>
+</header>
 
-    <p><a href="index.html">Powrót na stronę główną</a></p>
+<div class="galeria">
+    <img src="zdjecia/akcja1.jpg" onclick="pokaz(this)">
+    <img src="zdjecia/akcja2.jpg" onclick="pokaz(this)">
+    <img src="zdjecia/akcja3.jpg" onclick="pokaz(this)">
+    <img src="zdjecia/akcja4.jpg" onclick="pokaz(this)">
+    <img src="zdjecia/akcja5.jpg" onclick="pokaz(this)">
+    <img src="zdjecia/akcja6.jpg" onclick="pokaz(this)">
+    <img src="zdjecia/akcja7.jpg" onclick="pokaz(this)">
+    <img src="zdjecia/akcja8.jpg" onclick="pokaz(this)">
+    <img src="zdjecia/akcja9.jpg" onclick="pokaz(this)">
+    <img src="zdjecia/akcja10.jpg" onclick="pokaz(this)">
+    <img src="zdjecia/akcja11.jpg" onclick="pokaz(this)">
+    <img src="zdjecia/akcja12.jpg" onclick="pokaz(this)">
+    <img src="zdjecia/akcja13.jpg" onclick="pokaz(this)">
+    <img src="zdjecia/akcja14.jpg" onclick="pokaz(this)">
+    <img src="zdjecia/akcja15.jpg" onclick="pokaz(this)">
+    <img src="zdjecia/akcja16.jpg" onclick="pokaz(this)">
+    <img src="zdjecia/akcja17.jpg" onclick="pokaz(this)">
+    <img src="zdjecia/akcja18.jpg" onclick="pokaz(this)">
+    <img src="zdjecia/akcja19.jpg" onclick="pokaz(this)">
+    <img src="zdjecia/akcja20.jpg" onclick="pokaz(this)">
+    <img src="zdjecia/akcja21.jpg" onclick="pokaz(this)">
+</div>
+
+<div id="podglad" onclick="zamknij()">
+    <span id="zamknij">&times;</span>
+    <img id="duzeZdjecie" src="" alt="Powiększone zdjęcie">
+</div>
+
+<footer>
+    🚒 OSP MICHAŁOWO • Rysiu998<br><br>
+    © 2026 Krystian "Rysiu998"
+</footer>
+
+<script>
+function pokaz(zdjecie) {
+    document.getElementById("duzeZdjecie").src = zdjecie.src;
+    document.getElementById("podglad").style.display = "flex";
+}
+
+function zamknij() {
+    document.getElementById("podglad").style.display = "none";
+}
+</script>
+
 </body>
 </html>

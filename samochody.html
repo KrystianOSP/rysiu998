@@ -1,0 +1,210 @@
+
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nasze samochody | Rysiu998</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Segoe UI, sans-serif;
+}
+
+body {
+    background: linear-gradient(90deg,#13203f,#08162f,#13203f);
+    color: white;
+    min-height: 100vh;
+}
+
+header {
+    text-align: center;
+    padding: 55px 20px;
+}
+
+header h1 {
+    color: #ff4b4b;
+    font-size: 48px;
+    margin-bottom: 15px;
+}
+
+header p {
+    color: #cbd5e1;
+    font-size: 19px;
+}
+
+.powrot {
+    display: inline-block;
+    margin: 20px;
+    padding: 13px 22px;
+    background: #ff4b4b;
+    color: white;
+    text-decoration: none;
+    border-radius: 12px;
+}
+
+.powrot:hover {
+    background: #ff3030;
+}
+
+.container {
+    max-width: 1200px;
+    margin: auto;
+    padding: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(280px,1fr));
+    gap: 25px;
+}
+
+.auto {
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 22px;
+    padding: 20px;
+    transition: .3s;
+}
+
+.auto:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 0 25px rgba(255,75,75,.3);
+}
+
+.auto h2 {
+    color: #ff5b5b;
+    margin-bottom: 15px;
+}
+
+.auto img {
+    width: 100%;
+    height: 230px;
+    object-fit: cover;
+    border-radius: 14px;
+    margin-bottom: 15px;
+}
+
+.auto p {
+    line-height: 1.6;
+    color: #f1f5f9;
+    white-space: pre-wrap;
+}
+
+.wiecej {
+    margin-top: 15px;
+    padding: 12px 20px;
+    background: #ff4b4b;
+    border: none;
+    color: white;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+footer {
+    text-align: center;
+    padding: 35px;
+    margin-top: 60px;
+    background: #4d0000;
+    border-top: 3px solid #ff4b4b;
+}
+
+@media(max-width:600px) {
+    header h1 { font-size: 34px; }
+    .container { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+
+<body>
+
+<a href="index.html" class="powrot">← Powrót na stronę główną</a>
+
+<header>
+    <h1>🚒 Nasze samochody</h1>
+    <p>Poznaj pojazdy i wyposażenie naszej jednostki</p>
+</header>
+
+<div class="container" id="listaSamochodow">
+    <p>Ładowanie samochodów...</p>
+</div>
+
+<footer>
+    🚒 OSP MICHAŁOWO • Rysiu998<br><br>
+    © 2026
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+
+<script>
+async function pobierzSprzet() {
+    const lista = document.getElementById("listaSamochodow");
+
+    const { data, error } = await supabaseClient
+        .from("sprzet")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+    if (error) {
+        lista.textContent = "Nie udało się pobrać samochodów.";
+        console.error(error);
+        return;
+    }
+
+    lista.innerHTML = "";
+
+    if (!data || data.length === 0) {
+        lista.textContent = "Wkrótce przedstawimy nasze samochody.";
+        return;
+    }
+
+    data.forEach(pojazd => {
+        const karta = document.createElement("div");
+        karta.className = "auto";
+
+        const nazwa = document.createElement("h2");
+        nazwa.textContent = pojazd.nazwa;
+        karta.appendChild(nazwa);
+
+        if (pojazd.zdjecie_sciezka) {
+            const { data: urlData } = supabaseClient.storage
+                .from("zdjecia-akcji")
+                .getPublicUrl(pojazd.zdjecie_sciezka);
+
+            const img = document.createElement("img");
+            img.src = urlData.publicUrl;
+            img.alt = pojazd.nazwa;
+            karta.appendChild(img);
+        }
+
+        const opis = document.createElement("p");
+        opis.textContent = pojazd.opis;
+        opis.style.maxHeight = "75px";
+        opis.style.overflow = "hidden";
+
+        const przycisk = document.createElement("button");
+        przycisk.className = "wiecej";
+        przycisk.textContent = "Więcej informacji";
+
+        przycisk.onclick = () => {
+            if (opis.style.maxHeight === "75px") {
+                opis.style.maxHeight = "none";
+                przycisk.textContent = "Zwiń opis";
+            } else {
+                opis.style.maxHeight = "75px";
+                przycisk.textContent = "Więcej informacji";
+            }
+        };
+
+        karta.append(opis, przycisk);
+        lista.appendChild(karta);
+    });
+}
+
+pobierzSprzet();
+</script>
+
+</body>
+</html>

@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -20,7 +19,7 @@
             color: #ff3333;
         }
 
-        input, textarea {
+        input, textarea, select {
             display: block;
             width: 100%;
             box-sizing: border-box;
@@ -42,6 +41,11 @@
             margin: 5px;
         }
 
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         .wpis {
             background: #18243a;
             padding: 18px;
@@ -49,8 +53,36 @@
             border-radius: 8px;
         }
 
+        .zdjecie {
+            display: inline-block;
+            width: 150px;
+            margin: 8px;
+            vertical-align: top;
+            background: #18243a;
+            padding: 8px;
+            border-radius: 8px;
+        }
+
+        .zdjecie img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+
         #panel {
             display: none;
+        }
+
+        .sekcja {
+            margin-top: 35px;
+            padding-top: 20px;
+            border-top: 1px solid #445;
+        }
+
+        #statusZdjec {
+            margin: 12px 0;
+            color: #ffaaaa;
         }
     </style>
 </head>
@@ -60,33 +92,74 @@
 
     <div id="logowanie">
         <h2>Logowanie</h2>
-
         <input id="email" type="email" placeholder="Adres e-mail">
-
         <input id="haslo" type="password" placeholder="Hasło">
-
         <button onclick="zaloguj()">Zaloguj się</button>
     </div>
 
     <div id="panel">
-        <h2>Dodaj lub edytuj akcję</h2>
 
-        <form id="formularz">
-            <input id="tytul" type="text" placeholder="Tytuł akcji" required>
+        <div class="sekcja">
+            <h2>📝 Dodaj lub edytuj akcję</h2>
 
-            <label>Data zdarzenia:</label>
-            <input id="data" type="date" required>
+            <form id="formularz">
+                <input id="tytul" type="text" placeholder="Tytuł akcji" required>
 
-            <input id="miejsce" type="text" placeholder="Miejsce">
+                <label>Data zdarzenia:</label>
+                <input id="data" type="date" required>
 
-            <textarea id="opis" placeholder="Opis akcji" rows="5" required></textarea>
+                <input id="miejsce" type="text" placeholder="Miejsce">
 
-            <button type="submit">Zapisz akcję</button>
-            <button type="button" onclick="wyczyscFormularz()">Wyczyść formularz</button>
-        </form>
+                <textarea id="opis" placeholder="Opis akcji" rows="5" required></textarea>
 
-        <h2>📋 Istniejące akcje</h2>
-        <div id="listaAdmina"></div>
+                <button type="submit">Zapisz akcję</button>
+                <button type="button" onclick="wyczyscFormularz()">Wyczyść formularz</button>
+            </form>
+
+            <h2>📋 Istniejące akcje</h2>
+            <div id="listaAdmina"></div>
+        </div>
+
+        <div class="sekcja">
+            <h2>📸 Zarządzanie galerią</h2>
+
+            <h3>Utwórz nowy album</h3>
+
+            <form id="formularzAlbumu">
+                <input id="nazwaAlbumu" type="text"
+                    placeholder="Nazwa albumu, np. Pożar domu" required>
+
+                <input id="opisAlbumu" type="text"
+                    placeholder="Krótki opis albumu">
+
+                <button type="submit">Utwórz album</button>
+            </form>
+
+            <h3>Istniejące albumy</h3>
+            <div id="listaAlbumow">Ładowanie albumów...</div>
+        </div>
+
+        <div class="sekcja">
+            <h2>📤 Dodaj zdjęcia do albumu</h2>
+
+            <label>Wybierz album:</label>
+            <select id="wyborAlbumu">
+                <option value="">Ładowanie albumów...</option>
+            </select>
+
+            <label>Wybierz zdjęcia:</label>
+            <input id="plikiZdjec" type="file"
+                accept="image/*" multiple>
+
+            <button id="przyciskDodajZdjecia" onclick="dodajZdjecia()">
+                Dodaj zdjęcia
+            </button>
+
+            <div id="statusZdjec"></div>
+
+            <h3>Zdjęcia w wybranym albumie</h3>
+            <div id="listaZdjec"></div>
+        </div>
 
         <button onclick="wyloguj()">Wyloguj się</button>
     </div>
@@ -98,16 +171,21 @@
 
     <script>
         const ADMIN_ID = "2447a762-936a-4ba0-9c29-f55f41a4eca9";
+        const BUCKET = "zdjecia-akcji";
+
         let edytowaneId = null;
+
+        // LOGOWANIE
 
         async function zaloguj() {
             const email = document.getElementById("email").value;
             const haslo = document.getElementById("haslo").value;
 
-            const { data, error } = await supabaseClient.auth.signInWithPassword({
-                email: email,
-                password: haslo
-            });
+            const { data, error } =
+                await supabaseClient.auth.signInWithPassword({
+                    email: email,
+                    password: haslo
+                });
 
             if (error) {
                 alert("Błąd logowania: " + error.message);
@@ -134,7 +212,9 @@
         function pokazPanel() {
             document.getElementById("logowanie").style.display = "none";
             document.getElementById("panel").style.display = "block";
+
             pobierzListeAdmina();
+            pobierzAlbumy();
         }
 
         async function wyloguj() {
@@ -142,40 +222,43 @@
             location.reload();
         }
 
+        // AKCJE
+
         function wyczyscFormularz() {
             document.getElementById("formularz").reset();
             edytowaneId = null;
         }
 
-        document.getElementById("formularz").addEventListener("submit", async function(e) {
-            e.preventDefault();
+        document.getElementById("formularz")
+            .addEventListener("submit", async function(e) {
+                e.preventDefault();
 
-            const wpis = {
-                tytul: document.getElementById("tytul").value,
-                data_zdarzenia: document.getElementById("data").value,
-                miejsce: document.getElementById("miejsce").value,
-                opis: document.getElementById("opis").value
-            };
+                const wpis = {
+                    tytul: document.getElementById("tytul").value,
+                    data_zdarzenia: document.getElementById("data").value,
+                    miejsce: document.getElementById("miejsce").value,
+                    opis: document.getElementById("opis").value
+                };
 
-            let wynik;
+                let wynik;
 
-            if (edytowaneId === null) {
-                wynik = await supabaseClient.from("akcje").insert(wpis);
-            } else {
-                wynik = await supabaseClient.from("akcje")
-                    .update(wpis)
-                    .eq("id", edytowaneId);
-            }
+                if (edytowaneId === null) {
+                    wynik = await supabaseClient.from("akcje").insert(wpis);
+                } else {
+                    wynik = await supabaseClient.from("akcje")
+                        .update(wpis)
+                        .eq("id", edytowaneId);
+                }
 
-            if (wynik.error) {
-                alert("Nie udało się zapisać: " + wynik.error.message);
-                return;
-            }
+                if (wynik.error) {
+                    alert("Nie udało się zapisać: " + wynik.error.message);
+                    return;
+                }
 
-            alert("Akcja została zapisana!");
-            wyczyscFormularz();
-            pobierzListeAdmina();
-        });
+                alert("Akcja została zapisana!");
+                wyczyscFormularz();
+                pobierzListeAdmina();
+            });
 
         async function pobierzListeAdmina() {
             const lista = document.getElementById("listaAdmina");
@@ -205,6 +288,7 @@
 
                 const edytuj = document.createElement("button");
                 edytuj.textContent = "Edytuj";
+
                 edytuj.onclick = () => {
                     document.getElementById("tytul").value = akcja.tytul;
                     document.getElementById("data").value = akcja.data_zdarzenia;
@@ -228,9 +312,7 @@
         }
 
         async function usunAkcje(id) {
-            if (!confirm("Czy na pewno chcesz usunąć tę akcję?")) {
-                return;
-            }
+            if (!confirm("Czy na pewno chcesz usunąć tę akcję?")) return;
 
             const { error } = await supabaseClient
                 .from("akcje")
@@ -244,6 +326,296 @@
 
             alert("Akcja została usunięta.");
             pobierzListeAdmina();
+        }
+
+        // ALBUMY
+
+        async function pobierzAlbumy() {
+            const lista = document.getElementById("listaAlbumow");
+            const wybor = document.getElementById("wyborAlbumu");
+
+            const { data, error } = await supabaseClient
+                .from("albumy")
+                .select("*")
+                .order("created_at", { ascending: false });
+
+            if (error) {
+                lista.textContent = "Nie udało się pobrać albumów.";
+                wybor.innerHTML = '<option value="">Błąd pobierania albumów</option>';
+                console.error(error);
+                return;
+            }
+
+            lista.innerHTML = "";
+            wybor.innerHTML = "";
+
+            const opcja = document.createElement("option");
+            opcja.value = "";
+            opcja.textContent = "Wybierz album";
+            wybor.appendChild(opcja);
+
+            data.forEach(album => {
+                const option = document.createElement("option");
+                option.value = album.id;
+                option.textContent = album.nazwa;
+                wybor.appendChild(option);
+
+                const wpis = document.createElement("div");
+                wpis.className = "wpis";
+
+                const nazwa = document.createElement("h3");
+                nazwa.textContent = "📁 " + album.nazwa;
+
+                const opis = document.createElement("p");
+                opis.textContent = album.opis || "";
+
+                const usun = document.createElement("button");
+                usun.textContent = "Usuń album";
+                usun.onclick = () => usunAlbum(album);
+
+                wpis.append(nazwa, opis, usun);
+                lista.appendChild(wpis);
+            });
+
+            if (data.length === 0) {
+                lista.textContent = "Nie utworzono jeszcze żadnych albumów.";
+            }
+        }
+
+        document.getElementById("formularzAlbumu")
+            .addEventListener("submit", async function(e) {
+                e.preventDefault();
+
+                const nazwa = document.getElementById("nazwaAlbumu").value.trim();
+                const opis = document.getElementById("opisAlbumu").value.trim();
+
+                const { error } = await supabaseClient
+                    .from("albumy")
+                    .insert({ nazwa: nazwa, opis: opis });
+
+                if (error) {
+                    alert("Nie udało się utworzyć albumu: " + error.message);
+                    return;
+                }
+
+                alert("Album został utworzony!");
+                this.reset();
+                pobierzAlbumy();
+            });
+
+        async function usunAlbum(album) {
+            if (!confirm("Czy na pewno usunąć album i wszystkie jego zdjęcia?")) {
+                return;
+            }
+
+            const { data: zdjecia, error: bladPobierania } =
+                await supabaseClient
+                    .from("zdjecia_galerii")
+                    .select("sciezka")
+                    .eq("album_id", album.id);
+
+            if (bladPobierania) {
+                alert("Nie udało się pobrać zdjęć albumu: " + bladPobierania.message);
+                return;
+            }
+
+            if (zdjecia.length > 0) {
+                const { error: bladStorage } = await supabaseClient.storage
+                    .from(BUCKET)
+                    .remove(zdjecia.map(z => z.sciezka));
+
+                if (bladStorage) {
+                    alert("Nie udało się usunąć plików zdjęć: " + bladStorage.message);
+                    return;
+                }
+            }
+
+            const { error } = await supabaseClient
+                .from("albumy")
+                .delete()
+                .eq("id", album.id);
+
+            if (error) {
+                alert("Nie udało się usunąć albumu: " + error.message);
+                return;
+            }
+
+            document.getElementById("listaZdjec").innerHTML = "";
+            document.getElementById("wyborAlbumu").value = "";
+
+            alert("Album i jego zdjęcia zostały usunięte.");
+            pobierzAlbumy();
+        }
+
+        // ZDJĘCIA
+
+        document.getElementById("wyborAlbumu")
+            .addEventListener("change", pobierzZdjecia);
+
+        async function dodajZdjecia() {
+            const albumId = document.getElementById("wyborAlbumu").value;
+            const pliki = document.getElementById("plikiZdjec").files;
+            const status = document.getElementById("statusZdjec");
+            const przycisk = document.getElementById("przyciskDodajZdjecia");
+
+            if (!albumId) {
+                alert("Najpierw wybierz album.");
+                return;
+            }
+
+            if (!pliki || pliki.length === 0) {
+                alert("Wybierz przynajmniej jedno zdjęcie.");
+                return;
+            }
+
+            przycisk.disabled = true;
+            status.textContent = "Dodawanie zdjęć...";
+
+            const dodaneSciezki = [];
+
+            try {
+                for (let i = 0; i < pliki.length; i++) {
+                    const plik = pliki[i];
+
+                    if (!plik.type.startsWith("image/")) {
+                        throw new Error("Plik " + plik.name + " nie jest zdjęciem.");
+                    }
+
+                    if (plik.size > 10 * 1024 * 1024) {
+                        throw new Error("Plik " + plik.name + " przekracza limit 10 MB.");
+                    }
+
+                    const bezpiecznaNazwa = plik.name.replace(/[^\w.-]/g, "_");
+                    const sciezka = albumId + "/" + crypto.randomUUID() + "-" + bezpiecznaNazwa;
+
+                    const { error: bladUploadu } = await supabaseClient.storage
+                        .from(BUCKET)
+                        .upload(sciezka, plik, {
+                            cacheControl: "3600",
+                            upsert: false,
+                            contentType: plik.type
+                        });
+
+                    if (bladUploadu) {
+                        throw bladUploadu;
+                    }
+
+                    dodaneSciezki.push(sciezka);
+
+                    const { error: bladBazy } = await supabaseClient
+                        .from("zdjecia_galerii")
+                        .insert({
+                            album_id: Number(albumId),
+                            nazwa_pliku: plik.name,
+                            sciezka: sciezka
+                        });
+
+                    if (bladBazy) {
+                        await supabaseClient.storage.from(BUCKET).remove([sciezka]);
+                        dodaneSciezki.pop();
+                        throw bladBazy;
+                    }
+
+                    status.textContent = "Dodano " + (i + 1) + " z " + pliki.length + " zdjęć.";
+                }
+
+                document.getElementById("plikiZdjec").value = "";
+                alert("Zdjęcia zostały dodane!");
+                await pobierzZdjecia();
+
+            } catch (error) {
+                alert("Błąd dodawania zdjęć: " + error.message);
+
+                if (dodaneSciezki.length > 0) {
+                    await supabaseClient.storage.from(BUCKET).remove(dodaneSciezki);
+                    await supabaseClient
+                        .from("zdjecia_galerii")
+                        .delete()
+                        .in("sciezka", dodaneSciezki);
+                }
+
+            } finally {
+                przycisk.disabled = false;
+                status.textContent = "";
+            }
+        }
+
+        async function pobierzZdjecia() {
+            const albumId = document.getElementById("wyborAlbumu").value;
+            const lista = document.getElementById("listaZdjec");
+
+            lista.innerHTML = "";
+
+            if (!albumId) {
+                lista.textContent = "Wybierz album, aby zobaczyć zdjęcia.";
+                return;
+            }
+
+            const { data, error } = await supabaseClient
+                .from("zdjecia_galerii")
+                .select("*")
+                .eq("album_id", Number(albumId))
+                .order("created_at", { ascending: false });
+
+            if (error) {
+                lista.textContent = "Nie udało się pobrać zdjęć.";
+                console.error(error);
+                return;
+            }
+
+            if (data.length === 0) {
+                lista.textContent = "W tym albumie nie ma jeszcze zdjęć.";
+                return;
+            }
+
+            data.forEach(zdjecie => {
+                const url = supabaseClient.storage
+                    .from(BUCKET)
+                    .getPublicUrl(zdjecie.sciezka).data.publicUrl;
+
+                const karta = document.createElement("div");
+                karta.className = "zdjecie";
+
+                const img = document.createElement("img");
+                img.src = url;
+                img.alt = zdjecie.nazwa_pliku;
+
+                const nazwa = document.createElement("p");
+                nazwa.textContent = zdjecie.nazwa_pliku;
+
+                const usun = document.createElement("button");
+                usun.textContent = "Usuń";
+                usun.onclick = () => usunZdjecie(zdjecie);
+
+                karta.append(img, nazwa, usun);
+                lista.appendChild(karta);
+            });
+        }
+
+        async function usunZdjecie(zdjecie) {
+            if (!confirm("Czy na pewno usunąć to zdjęcie?")) return;
+
+            const { error: bladStorage } = await supabaseClient.storage
+                .from(BUCKET)
+                .remove([zdjecie.sciezka]);
+
+            if (bladStorage) {
+                alert("Nie udało się usunąć pliku: " + bladStorage.message);
+                return;
+            }
+
+            const { error } = await supabaseClient
+                .from("zdjecia_galerii")
+                .delete()
+                .eq("id", zdjecie.id);
+
+            if (error) {
+                alert("Plik usunięto, ale nie udało się usunąć wpisu z bazy: " + error.message);
+                return;
+            }
+
+            alert("Zdjęcie zostało usunięte.");
+            pobierzZdjecia();
         }
 
         sprawdzLogowanie();

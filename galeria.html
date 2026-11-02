@@ -27,14 +27,13 @@ header {
 
 header h1 {
     color: #ff4b4b;
-    font-size: 48px;
+    font-size: 42px;
     text-shadow: 0 0 20px #ff4b4b;
 }
 
 header p {
     color: #cbd5e1;
     margin-top: 12px;
-    font-size: 18px;
 }
 
 .powrot {
@@ -45,15 +44,49 @@ header p {
     color: white;
     text-decoration: none;
     border-radius: 12px;
+    cursor: pointer;
+    border: none;
 }
 
-.galeria {
+#albumy, #zdjecia {
     max-width: 1200px;
     margin: auto;
     padding: 20px;
+}
+
+.lista-albumow, .galeria {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 18px;
+}
+
+.album {
+    background: #18243a;
+    border: 2px solid #ff4b4b;
+    border-radius: 16px;
+    padding: 35px 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.album:hover {
+    transform: scale(1.03);
+    box-shadow: 0 0 20px #ff4b4b;
+}
+
+.album .ikona {
+    font-size: 55px;
+}
+
+.album h3 {
+    margin-top: 12px;
+    color: #ff7777;
+}
+
+.album p {
+    margin-top: 8px;
+    color: #cbd5e1;
 }
 
 .galeria img {
@@ -69,6 +102,15 @@ header p {
 .galeria img:hover {
     transform: scale(1.03);
     box-shadow: 0 0 20px #ff4b4b;
+}
+
+#zdjecia {
+    display: none;
+}
+
+#tytulAlbumu {
+    color: #ff7777;
+    margin-bottom: 20px;
 }
 
 #podglad {
@@ -108,18 +150,19 @@ footer {
 }
 
 @media (max-width: 768px) {
-    header h1 {
-        font-size: 36px;
-    }
-
-    .galeria {
+    .lista-albumow, .galeria {
         grid-template-columns: repeat(2, 1fr);
         gap: 10px;
-        padding: 12px;
     }
 
     .galeria img {
         height: 150px;
+    }
+}
+
+@media (max-width: 400px) {
+    .lista-albumow, .galeria {
+        grid-template-columns: 1fr;
     }
 }
 </style>
@@ -133,29 +176,18 @@ footer {
     <a href="index.html" class="powrot">← Powrót na stronę główną</a>
 </header>
 
-<div class="galeria">
-    <img src="zdjecia/akcja1.jpg" onclick="pokaz(this)">
-    <img src="zdjecia/akcja2.jpg" onclick="pokaz(this)">
-    <img src="zdjecia/akcja3.jpg" onclick="pokaz(this)">
-    <img src="zdjecia/akcja4.jpg" onclick="pokaz(this)">
-    <img src="zdjecia/akcja5.jpg" onclick="pokaz(this)">
-    <img src="zdjecia/akcja6.jpg" onclick="pokaz(this)">
-    <img src="zdjecia/akcja7.jpg" onclick="pokaz(this)">
-    <img src="zdjecia/akcja8.jpg" onclick="pokaz(this)">
-    <img src="zdjecia/akcja9.jpg" onclick="pokaz(this)">
-    <img src="zdjecia/akcja10.jpg" onclick="pokaz(this)">
-    <img src="zdjecia/akcja11.jpg" onclick="pokaz(this)">
-    <img src="zdjecia/akcja12.jpg" onclick="pokaz(this)">
-    <img src="zdjecia/akcja13.jpg" onclick="pokaz(this)">
-    <img src="zdjecia/akcja14.jpg" onclick="pokaz(this)">
-    <img src="zdjecia/akcja15.jpg" onclick="pokaz(this)">
-    <img src="zdjecia/akcja16.jpg" onclick="pokaz(this)">
-    <img src="zdjecia/akcja17.jpg" onclick="pokaz(this)">
-    <img src="zdjecia/akcja18.jpg" onclick="pokaz(this)">
-    <img src="zdjecia/akcja19.jpg" onclick="pokaz(this)">
-    <img src="zdjecia/akcja20.jpg" onclick="pokaz(this)">
-    <img src="zdjecia/akcja21.jpg" onclick="pokaz(this)">
-</div>
+<section id="albumy">
+    <h2 style="margin-bottom:20px;">📁 Nasze albumy</h2>
+    <div id="listaAlbumow" class="lista-albumow">
+        <p>Ładowanie albumów...</p>
+    </div>
+</section>
+
+<section id="zdjecia">
+    <button class="powrot" onclick="pokazAlbumy()">← Wróć do albumów</button>
+    <h2 id="tytulAlbumu"></h2>
+    <div id="listaZdjec" class="galeria"></div>
+</section>
 
 <div id="podglad" onclick="zamknij()">
     <span id="zamknij">&times;</span>
@@ -167,7 +199,130 @@ footer {
     © 2026 Krystian "Rysiu998"
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+
 <script>
+const stareZdjecia = Array.from(
+    { length: 21 },
+    (_, i) => `zdjecia/akcja${i + 1}.jpg`
+);
+
+async function pobierzAlbumy() {
+    const lista = document.getElementById("listaAlbumow");
+
+    const { data, error } = await supabaseClient
+        .from("albumy")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+    if (error) {
+        lista.textContent = "Nie udało się pobrać albumów.";
+        console.error(error);
+        return;
+    }
+
+    lista.innerHTML = "";
+
+    data.forEach(album => {
+        const karta = document.createElement("div");
+        karta.className = "album";
+
+        const ikona = document.createElement("div");
+        ikona.className = "ikona";
+        ikona.textContent = "📁";
+
+        const nazwa = document.createElement("h3");
+        nazwa.textContent = album.nazwa;
+
+        const opis = document.createElement("p");
+        opis.textContent = album.opis || "Kliknij, aby zobaczyć zdjęcia";
+
+        karta.append(ikona, nazwa, opis);
+        karta.addEventListener("click", () => otworzAlbum(album));
+
+        lista.appendChild(karta);
+    });
+
+    if (data.length === 0) {
+        lista.textContent = "Nie ma jeszcze żadnych albumów.";
+    }
+
+    // Dotychczasowe 21 zdjęć pozostają dostępne
+    const stare = document.createElement("div");
+    stare.className = "album";
+    stare.innerHTML = `
+        <div class="ikona">📸</div>
+        <h3>Dotychczasowa galeria</h3>
+        <p>Nasze wcześniejsze zdjęcia</p>
+    `;
+    stare.addEventListener("click", pokazStareZdjecia);
+    lista.appendChild(stare);
+}
+
+async function otworzAlbum(album) {
+    document.getElementById("albumy").style.display = "none";
+    document.getElementById("zdjecia").style.display = "block";
+    document.getElementById("tytulAlbumu").textContent = "📁 " + album.nazwa;
+
+    const lista = document.getElementById("listaZdjec");
+    lista.innerHTML = "<p>Ładowanie zdjęć...</p>";
+
+    const { data, error } = await supabaseClient
+        .from("zdjecia_galerii")
+        .select("*")
+        .eq("album_id", album.id)
+        .order("created_at", { ascending: false });
+
+    if (error) {
+        lista.textContent = "Nie udało się pobrać zdjęć.";
+        console.error(error);
+        return;
+    }
+
+    lista.innerHTML = "";
+
+    if (data.length === 0) {
+        lista.textContent = "W tym albumie nie ma jeszcze zdjęć.";
+        return;
+    }
+
+    data.forEach(zdjecie => {
+        const url = supabaseClient.storage
+            .from("zdjecia-akcji")
+            .getPublicUrl(zdjecie.sciezka).data.publicUrl;
+
+        dodajZdjecie(lista, url, zdjecie.nazwa_pliku);
+    });
+}
+
+function pokazStareZdjecia() {
+    document.getElementById("albumy").style.display = "none";
+    document.getElementById("zdjecia").style.display = "block";
+    document.getElementById("tytulAlbumu").textContent = "📸 Dotychczasowa galeria";
+
+    const lista = document.getElementById("listaZdjec");
+    lista.innerHTML = "";
+
+    stareZdjecia.forEach((url, i) => {
+        dodajZdjecie(lista, url, "Zdjęcie " + (i + 1));
+    });
+}
+
+function dodajZdjecie(lista, url, opis) {
+    const img = document.createElement("img");
+    img.src = url;
+    img.alt = opis;
+    img.loading = "lazy";
+    img.addEventListener("click", () => pokaz(img));
+    lista.appendChild(img);
+}
+
+function pokazAlbumy() {
+    document.getElementById("zdjecia").style.display = "none";
+    document.getElementById("albumy").style.display = "block";
+}
+
 function pokaz(zdjecie) {
     document.getElementById("duzeZdjecie").src = zdjecie.src;
     document.getElementById("podglad").style.display = "flex";
@@ -176,6 +331,12 @@ function pokaz(zdjecie) {
 function zamknij() {
     document.getElementById("podglad").style.display = "none";
 }
+
+document.getElementById("duzeZdjecie").addEventListener("click", e => {
+    e.stopPropagation();
+});
+
+pobierzAlbumy();
 </script>
 
 </body>

@@ -354,13 +354,11 @@ Jest to moja pierwsza strona na której będą jeszcze zachodziły zmiany.
 </div>
 
 <div class="card" id="aktualnosci">
-<h2>📰 Aktualności</h2>
+    <h2>📰 Aktualności</h2>
 
-<p>
-🚒 Uruchomienie oficjalnej strony Rysiu998.<br><br>
-💬 Do społeczności można dołączyć przez Discord.<br><br>
-
-</p>
+    <div id="listaAktualnosciStrona">
+        <p>Ładowanie aktualności...</p>
+    </div>
 </div>
 
 <a href="galeria.html" class="card karta-galerii">
@@ -492,7 +490,67 @@ async function pobierzAkcje() {
     });
 }
 
-document.addEventListener("DOMContentLoaded", pobierzAkcje);
+document.addEventListener("DOMContentLoaded", () => {
+    pobierzAkcje();
+    pobierzAktualnosci();
+});
+    async function pobierzAktualnosci() {
+    const lista = document.getElementById("listaAktualnosciStrona");
+
+    const { data, error } = await supabaseClient
+        .from("aktualnosci")
+        .select("*")
+        .order("data_publikacji", { ascending: false })
+        .order("created_at", { ascending: false })
+        .limit(5);
+
+    if (error) {
+        lista.textContent = "Nie udało się pobrać aktualności.";
+        console.error(error);
+        return;
+    }
+
+    lista.innerHTML = "";
+
+    if (!data || data.length === 0) {
+        lista.textContent = "Brak aktualności. Wkrótce pojawią się nowe informacje.";
+        return;
+    }
+
+    data.forEach(wpis => {
+        const karta = document.createElement("div");
+        karta.style.cssText = "background:#18243a;padding:20px;margin-top:15px;border-radius:12px;text-align:left;";
+
+        const tytul = document.createElement("h3");
+        tytul.textContent = wpis.tytul;
+        tytul.style.color = "#ff5b5b";
+
+        const dataWpisu = document.createElement("p");
+        dataWpisu.textContent = "📅 " + wpis.data_publikacji;
+
+        const tresc = document.createElement("p");
+        tresc.textContent = wpis.tresc;
+        tresc.style.whiteSpace = "pre-wrap";
+
+        karta.append(tytul, dataWpisu);
+
+        if (wpis.zdjecie_sciezka) {
+            const { data: urlData } = supabaseClient.storage
+                .from("zdjecia-akcji")
+                .getPublicUrl(wpis.zdjecie_sciezka);
+
+            const img = document.createElement("img");
+            img.src = urlData.publicUrl;
+            img.alt = wpis.tytul;
+            img.style.cssText = "width:100%;max-height:300px;object-fit:cover;border-radius:10px;margin:12px 0;";
+
+            karta.appendChild(img);
+        }
+
+        karta.appendChild(tresc);
+        lista.appendChild(karta);
+    });
+}
 </script>
 
 </body>

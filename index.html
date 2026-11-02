@@ -354,12 +354,22 @@ Jest to moja pierwsza strona na której będą jeszcze zachodziły zmiany.
 </div>
 
 <div class="card" id="aktualnosci">
-    <h2>📰 Aktualności</h2>
+<h2>📰 Aktualności</h2>
 
-    <div id="listaAktualnosciStrona">
-        <p>Ładowanie aktualności...</p>
+<p>
+🚒 Uruchomienie oficjalnej strony Rysiu998.<br><br>
+💬 Do społeczności można dołączyć przez Discord.<br><br>
+
+</p>
+</div>
+
+<div class="card" id="samochody">
+    <h2>🚒 Nasze samochody</h2>
+    <div id="listaSamochodow">
+        <p>Ładowanie samochodów...</p>
     </div>
 </div>
+    
 
 <a href="galeria.html" class="card karta-galerii">
 
@@ -381,6 +391,8 @@ Jest to moja pierwsza strona na której będą jeszcze zachodziły zmiany.
 
 <div class="card" id="akcje">
 
+<a href="#samochody">Nasze samochody</a>
+    
     <h2>🚒 Akcje</h2>
 
     <p>
@@ -490,22 +502,16 @@ async function pobierzAkcje() {
     });
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-    pobierzAkcje();
-    pobierzAktualnosci();
-});
-    async function pobierzAktualnosci() {
-    const lista = document.getElementById("listaAktualnosciStrona");
+async function pobierzSprzet() {
+    const lista = document.getElementById("listaSamochodow");
 
     const { data, error } = await supabaseClient
-        .from("aktualnosci")
+        .from("sprzet")
         .select("*")
-        .order("data_publikacji", { ascending: false })
-        .order("created_at", { ascending: false })
-        .limit(5);
+        .order("created_at", { ascending: false });
 
     if (error) {
-        lista.textContent = "Nie udało się pobrać aktualności.";
+        lista.textContent = "Nie udało się pobrać samochodów.";
         console.error(error);
         return;
     }
@@ -513,44 +519,65 @@ document.addEventListener("DOMContentLoaded", () => {
     lista.innerHTML = "";
 
     if (!data || data.length === 0) {
-        lista.textContent = "Brak aktualności. Wkrótce pojawią się nowe informacje.";
+        lista.textContent = "Wkrótce przedstawimy nasze samochody.";
         return;
     }
 
-    data.forEach(wpis => {
+    const siatka = document.createElement("div");
+    siatka.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;";
+
+    data.forEach(pojazd => {
         const karta = document.createElement("div");
-        karta.style.cssText = "background:#18243a;padding:20px;margin-top:15px;border-radius:12px;text-align:left;";
+        karta.style.cssText = "background:#18243a;padding:15px;border-radius:15px;text-align:left;";
 
-        const tytul = document.createElement("h3");
-        tytul.textContent = wpis.tytul;
-        tytul.style.color = "#ff5b5b";
+        const nazwa = document.createElement("h3");
+        nazwa.textContent = pojazd.nazwa;
+        nazwa.style.color = "#ff5b5b";
 
-        const dataWpisu = document.createElement("p");
-        dataWpisu.textContent = "📅 " + wpis.data_publikacji;
+        karta.appendChild(nazwa);
 
-        const tresc = document.createElement("p");
-        tresc.textContent = wpis.tresc;
-        tresc.style.whiteSpace = "pre-wrap";
-
-        karta.append(tytul, dataWpisu);
-
-        if (wpis.zdjecie_sciezka) {
+        if (pojazd.zdjecie_sciezka) {
             const { data: urlData } = supabaseClient.storage
                 .from("zdjecia-akcji")
-                .getPublicUrl(wpis.zdjecie_sciezka);
+                .getPublicUrl(pojazd.zdjecie_sciezka);
 
             const img = document.createElement("img");
             img.src = urlData.publicUrl;
-            img.alt = wpis.tytul;
-            img.style.cssText = "width:100%;max-height:300px;object-fit:cover;border-radius:10px;margin:12px 0;";
+            img.alt = pojazd.nazwa;
+            img.style.cssText = "width:100%;height:180px;object-fit:cover;border-radius:10px;margin:12px 0;";
 
             karta.appendChild(img);
         }
 
-        karta.appendChild(tresc);
-        lista.appendChild(karta);
+        const opis = document.createElement("p");
+        opis.textContent = pojazd.opis;
+        opis.style.cssText = "max-height:75px;overflow:hidden;";
+
+        const przycisk = document.createElement("button");
+        przycisk.textContent = "Więcej informacji";
+        przycisk.className = "btn";
+
+        przycisk.onclick = () => {
+            if (opis.style.maxHeight === "75px") {
+                opis.style.maxHeight = "none";
+                przycisk.textContent = "Zwiń";
+            } else {
+                opis.style.maxHeight = "75px";
+                przycisk.textContent = "Więcej informacji";
+            }
+        };
+
+        karta.append(opis, przycisk);
+        siatka.appendChild(karta);
     });
+
+    lista.appendChild(siatka);
 }
+    
+document.addEventListener("DOMContentLoaded", () => {
+    pobierzAkcje();
+    pobierzSprzet();
+});
 </script>
 
 </body>

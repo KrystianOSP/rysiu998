@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rysiu998</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Segoe UI, sans-serif;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+.navbar{
+    display:flex;
+    justify-content:center;
+    gap:30px;
+    padding:20px;
+    background:rgba(255,255,255,.05);
+    border-bottom:1px solid rgba(255,255,255,.1);
+}
+
+.navbar a{
+    color:white;
+    text-decoration:none;
+    font-size:18px;
+    font-weight:600;
+    transition:.3s;
+}
+
+.navbar a:hover{
+    color:#ff4b4b;
+}
+body{
+    background:linear-gradient(90deg,#13203f,#08162f,#13203f);
+    color:white;
+    min-height:100vh;
+}
+
+header{
+    text-align:center;
+    padding:80px 20px;
+}
+
+header h1{
+    font-size:90px;
+    color:#ff4b4b;
+    text-shadow:
+    0 0 10px #ff4b4b,
+    0 0 20px #ff4b4b,
+    0 0 35px #ff4b4b;
+}
+
+header p{
+    color:#cbd5e1;
+    font-size:24px;
+    margin-top:10px;
+}
+
+.logo{
+    font-size:120px;
+    margin-bottom:20px;
+    text-shadow:0 0 25px #ff4b4b;
+}
+
+.stats{
+    display:flex;
+    justify-content:center;
+    gap:100px;
+    flex-wrap:wrap;
+    margin-bottom:70px;
+}
+
+.stat{
+    text-align:center;
+}
+
+.stat h2{
+    font-size:65px;
+    color:#ff4b4b;
+}
+
+.stat p{
+    font-size:18px;
+    color:#e5e7eb;
+}
+
+.container{
+    max-width:1300px;
+    margin:auto;
+    padding:20px;
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(350px,1fr));
+    gap:25px;
+}
+
+.card{
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.1);
+    border-radius:30px;
+    padding:35px;
+    transition:0.3s;
+}
+
+.card:hover{
+    transform:translateY(-8px);
+    box-shadow:0 0 30px rgba(255,75,75,.3);
+}
+
+.card h2{
+    color:#ff5b5b;
+    font-size:28px;
+    margin-bottom:25px;
+}
+
+.card p{
+    font-size:18px;
+    line-height:1.6;
+    color:#f1f5f9;
+}
+
+.btn{
+    display:inline-block;
+    margin-top:20px;
+    background:#ff4b4b;
+    color:white;
+    text-decoration:none;
+    padding:15px 30px;
+    border-radius:14px;
+    font-size:20px;
+}
+
+.btn:hover{
+    background:#ff3030;
+}
+
+.avatar{
+    width:150px;
+    height:150px;
+    border-radius:50%;
+    object-fit:cover;
+    border:4px solid #ff4b4b;
+    box-shadow:0 0 25px #ff4b4b;
+    margin-bottom:20px;
+}
+
+.banner{
+    background:#aa0000;
+    color:white;
+    text-align:center;
+    padding:15px;
+    font-size:20px;
+    font-weight:bold;
+    border-top:2px solid #ff4b4b;
+    border-bottom:2px solid #ff4b4b;
+    margin-bottom:30px;
+}
+
+footer{
+    text-align:center;
+    margin-top:100px;
+    padding:40px;
+    background:#4d0000;
+    border-top:3px solid #ff4b4b;
+    color:white;
+    font-size:18px;
+}
+
+
+.zdjecia-galeria {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.zdjecia-galeria img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    border-radius: 15px;
+    border: 2px solid #ff4b4b;
+    transition: 0.3s;
+}
+
+.zdjecia-galeria img:hover {
+    transform: scale(1.04);
+    box-shadow: 0 0 20px rgba(255,75,75,.5);
+}
+
+.karta-galerii,
+.karta-galerii:visited,
+.karta-galerii:hover,
+.karta-galerii:active {
+    text-decoration: none;
+    color: white;
+}
+</style>
+</head>
+
+<body>
+
+<nav class="navbar">
+    <a href="#omnie">O mnie</a>
+    <a href="#aktualnosci">Aktualności</a>
+    <a href="galeria.html">Galeria</a>
+    <a href="#akcje">Akcje</a>
+    <a href="#discord">Discord</a>
+    <a href="#kontakt">Kontakt</a>
+</nav>
+
+<header>
+
+<div class="logo">🚒</div>
+
+<h1>Rysiu998</h1>
+
+<p>Krystian "Rysiu998"</p>
+<p>Strażak • Ratownictwo • Łączność • Technologia</p>
+
+</header>
+
+
+<div class="banner">
+    🚒 Witamy na oficjalnej stronie "Rysiu998" 🚒
+</div>
+
+<div class="stats">
+
+<div class="stat">
+<h2>998</h2>
+<p>Numer Straży</p>
+</div>
+
+<div class="stat">
+<h2>24/7</h2>
+<p>Gotowość</p>
+</div>
+
+<div class="stat">
+<h2>100%</h2>
+<p>Pasji</p>
+</div>
+
+</div>
+
+<div class="container">
+
+<div class="card" id="omnie">
+<h2>👨‍🚒 O mnie</h2>
+<p>
+Cześć! Mam na imię Krystian.
+
+Jestem strażakiem z OSP Michałowo, interesuję się nowoczesną technologią oraz projektami internetowymi.
+Jest to moja pierwsza strona na której będą jeszcze zachodziły zmiany.
+</p>
+</div>
+
+<div class="card" id="aktualnosci">
+<h2>📰 Aktualności</h2>
+
+<p>
+🚒 Uruchomienie oficjalnej strony Rysiu998.<br><br>
+💬 Do społeczności można dołączyć przez Discord.<br><br>
+
+</p>
+</div>
+
+<a href="galeria.html" class="card karta-galerii">
+
+    <h2>📷 Galeria</h2>
+
+    <p>
+        👨‍🚒 Szkolenia<br>
+        🚒 Akcje ratownicze<br>
+        🚨 Ćwiczenia<br>
+        📸 Inne zdjęcia
+    </p>
+
+    <p class="kliknij-galerie">
+        Kliknij, aby zobaczyć zdjęcia →
+    </p>
+
+</a>
+
+
+<div class="card" id="akcje">
+
+    <h2>🚒 Akcje</h2>
+
+    <p>
+        📋 Lista ostatnich wyjazdów<br>
+        🚨 Informacje o zdarzeniach<br>
+        📅 Kronika działań ratowniczych
+    </p>
+
+    <button class="btn" onclick="pokazAkcje()">
+        Kliknij, aby zobaczyć szczegóły →
+    </button>
+
+    <div id="listaAkcji" style="display:none; margin-top:25px;">
+
+        <h2>📋 Lista wyjazdów</h2>
+
+        <p>
+            Tutaj będą wyświetlane informacje o wyjazdach i działaniach ratowniczych.
+        </p>
+
+    </div>
+
+</div>
+
+<div class="card" id="discord">
+<h2>💬 Discord</h2>
+<p>
+Dołącz do społeczności Ratunkowe Podlasie i Rysiu998.
+</p>
+
+<a class="btn" href="https://discord.gg/JqHGJzp5j" target="_blank">
+Dołącz do Discorda
+</a>
+
+</div>
+
+<div class="card" id="kontakt">
+<h2>📞 Kontakt</h2>
+<p>
+Email: skrobczynskikrystian704@gmail.com
+</p>
+</div>
+
+</div>
+
+<footer>
+🚒 OSP MICHAŁOWO • Ratunkowe Podlasie • Rysiu998<br><br>
+© 2026 Krystian "Rysiu998"
+</footer>
+
+<script>
+function pokazAkcje() {
+    const lista = document.getElementById("listaAkcji");
+
+    if (lista.style.display === "none") {
+        lista.style.display = "block";
+    } else {
+        lista.style.display = "none";
+    }
+}
+</script>
+
+</body>
+</html>

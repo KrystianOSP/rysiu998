@@ -96,12 +96,6 @@ header p {
     border-radius: 16px;
     border: 2px solid #ff4b4b;
     cursor: pointer;
-    transition: 0.3s;
-}
-
-.galeria img:hover {
-    transform: scale(1.03);
-    box-shadow: 0 0 20px #ff4b4b;
 }
 
 #zdjecia {
@@ -110,35 +104,75 @@ header p {
 
 #tytulAlbumu {
     color: #ff7777;
-    margin-bottom: 20px;
+    margin: 20px 0;
 }
 
 #podglad {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.92);
+    background: rgba(0,0,0,0.95);
     justify-content: center;
     align-items: center;
-    padding: 15px;
-    z-index: 10;
+    padding: 65px 70px;
+    z-index: 9999;
+    touch-action: pan-y;
 }
 
-#podglad img {
-    max-width: 95%;
-    max-height: 85vh;
+#duzeZdjecie {
+    max-width: 100%;
+    max-height: 82vh;
     object-fit: contain;
     border: 2px solid #ff4b4b;
     border-radius: 12px;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+.strzalka {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 55px;
+    height: 55px;
+    border: 2px solid white;
+    border-radius: 50%;
+    background: #ff3333;
+    color: white;
+    font-size: 30px;
+    cursor: pointer;
+    z-index: 10001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#poprzednie {
+    left: 12px;
+}
+
+#nastepne {
+    right: 12px;
 }
 
 #zamknij {
     position: absolute;
-    top: 15px;
+    top: 12px;
     right: 22px;
-    font-size: 40px;
+    font-size: 45px;
     color: white;
     cursor: pointer;
+    z-index: 10002;
+}
+
+#licznikZdjec {
+    position: absolute;
+    bottom: 15px;
+    color: white;
+    font-size: 18px;
+    background: rgba(0,0,0,0.6);
+    padding: 8px 16px;
+    border-radius: 20px;
 }
 
 footer {
@@ -160,9 +194,32 @@ footer {
     }
 }
 
-@media (max-width: 400px) {
+@media (max-width: 500px) {
     .lista-albumow, .galeria {
         grid-template-columns: 1fr;
+    }
+
+    #podglad {
+        padding: 65px 48px;
+    }
+
+    #duzeZdjecie {
+        max-width: 100%;
+        max-height: 75vh;
+    }
+
+    .strzalka {
+        width: 42px;
+        height: 42px;
+        font-size: 24px;
+    }
+
+    #poprzednie {
+        left: 4px;
+    }
+
+    #nastepne {
+        right: 4px;
     }
 }
 </style>
@@ -189,9 +246,12 @@ footer {
     <div id="listaZdjec" class="galeria"></div>
 </section>
 
-<div id="podglad" onclick="zamknij()">
+<div id="podglad">
     <span id="zamknij">&times;</span>
+    <button id="poprzednie" class="strzalka" aria-label="Poprzednie zdjęcie">&#10094;</button>
     <img id="duzeZdjecie" src="" alt="Powiększone zdjęcie">
+    <button id="nastepne" class="strzalka" aria-label="Następne zdjęcie">&#10095;</button>
+    <div id="licznikZdjec"></div>
 </div>
 
 <footer>
@@ -211,53 +271,50 @@ const stareZdjecia = Array.from(
 async function pobierzAlbumy() {
     const lista = document.getElementById("listaAlbumow");
 
-    const { data, error } = await supabaseClient
-        .from("albumy")
-        .select("*")
-        .order("created_at", { ascending: false });
+    try {
+        const { data, error } = await supabaseClient
+            .from("albumy")
+            .select("*")
+            .order("created_at", { ascending: false });
 
-    if (error) {
+        if (error) throw error;
+
+        lista.innerHTML = "";
+
+        data.forEach(album => {
+            const karta = document.createElement("div");
+            karta.className = "album";
+
+            const ikona = document.createElement("div");
+            ikona.className = "ikona";
+            ikona.textContent = "📁";
+
+            const nazwa = document.createElement("h3");
+            nazwa.textContent = album.nazwa;
+
+            const opis = document.createElement("p");
+            opis.textContent = album.opis || "Kliknij, aby zobaczyć zdjęcia";
+
+            karta.append(ikona, nazwa, opis);
+            karta.addEventListener("click", () => otworzAlbum(album));
+
+            lista.appendChild(karta);
+        });
+
+        const stare = document.createElement("div");
+        stare.className = "album";
+        stare.innerHTML = `
+            <div class="ikona">📸</div>
+            <h3>Dotychczasowa galeria</h3>
+            <p>Nasze wcześniejsze zdjęcia</p>
+        `;
+        stare.addEventListener("click", pokazStareZdjecia);
+        lista.appendChild(stare);
+
+    } catch (error) {
         lista.textContent = "Nie udało się pobrać albumów.";
-        console.error(error);
-        return;
+        console.error("Błąd albumów:", error);
     }
-
-    lista.innerHTML = "";
-
-    data.forEach(album => {
-        const karta = document.createElement("div");
-        karta.className = "album";
-
-        const ikona = document.createElement("div");
-        ikona.className = "ikona";
-        ikona.textContent = "📁";
-
-        const nazwa = document.createElement("h3");
-        nazwa.textContent = album.nazwa;
-
-        const opis = document.createElement("p");
-        opis.textContent = album.opis || "Kliknij, aby zobaczyć zdjęcia";
-
-        karta.append(ikona, nazwa, opis);
-        karta.addEventListener("click", () => otworzAlbum(album));
-
-        lista.appendChild(karta);
-    });
-
-    if (data.length === 0) {
-        lista.textContent = "Nie ma jeszcze żadnych albumów.";
-    }
-
-    // Dotychczasowe 21 zdjęć pozostają dostępne
-    const stare = document.createElement("div");
-    stare.className = "album";
-    stare.innerHTML = `
-        <div class="ikona">📸</div>
-        <h3>Dotychczasowa galeria</h3>
-        <p>Nasze wcześniejsze zdjęcia</p>
-    `;
-    stare.addEventListener("click", pokazStareZdjecia);
-    lista.appendChild(stare);
 }
 
 async function otworzAlbum(album) {
@@ -268,32 +325,34 @@ async function otworzAlbum(album) {
     const lista = document.getElementById("listaZdjec");
     lista.innerHTML = "<p>Ładowanie zdjęć...</p>";
 
-    const { data, error } = await supabaseClient
-        .from("zdjecia_galerii")
-        .select("*")
-        .eq("album_id", album.id)
-        .order("created_at", { ascending: false });
+    try {
+        const { data, error } = await supabaseClient
+            .from("zdjecia_galerii")
+            .select("*")
+            .eq("album_id", album.id)
+            .order("created_at", { ascending: false });
 
-    if (error) {
+        if (error) throw error;
+
+        lista.innerHTML = "";
+
+        if (!data || data.length === 0) {
+            lista.textContent = "W tym albumie nie ma jeszcze zdjęć.";
+            return;
+        }
+
+        data.forEach(zdjecie => {
+            const url = supabaseClient.storage
+                .from("zdjecia-akcji")
+                .getPublicUrl(zdjecie.sciezka).data.publicUrl;
+
+            dodajZdjecie(lista, url, zdjecie.nazwa_pliku);
+        });
+
+    } catch (error) {
         lista.textContent = "Nie udało się pobrać zdjęć.";
-        console.error(error);
-        return;
+        console.error("Błąd zdjęć:", error);
     }
-
-    lista.innerHTML = "";
-
-    if (data.length === 0) {
-        lista.textContent = "W tym albumie nie ma jeszcze zdjęć.";
-        return;
-    }
-
-    data.forEach(zdjecie => {
-        const url = supabaseClient.storage
-            .from("zdjecia-akcji")
-            .getPublicUrl(zdjecie.sciezka).data.publicUrl;
-
-        dodajZdjecie(lista, url, zdjecie.nazwa_pliku);
-    });
 }
 
 function pokazStareZdjecia() {
@@ -319,22 +378,107 @@ function dodajZdjecie(lista, url, opis) {
 }
 
 function pokazAlbumy() {
+    zamknij();
     document.getElementById("zdjecia").style.display = "none";
     document.getElementById("albumy").style.display = "block";
 }
 
+let zdjeciaPodgladu = [];
+let aktualneZdjecie = 0;
+let dotykStart = 0;
+
+const podglad = document.getElementById("podglad");
+const duzeZdjecie = document.getElementById("duzeZdjecie");
+
 function pokaz(zdjecie) {
-    document.getElementById("duzeZdjecie").src = zdjecie.src;
-    document.getElementById("podglad").style.display = "flex";
+    zdjeciaPodgladu = Array.from(
+        document.querySelectorAll("#listaZdjec img")
+    ).map(img => ({
+        src: img.src,
+        alt: img.alt
+    }));
+
+    aktualneZdjecie = zdjeciaPodgladu.findIndex(
+        img => img.src === zdjecie.src
+    );
+
+    if (aktualneZdjecie < 0) return;
+
+    wyswietlAktualneZdjecie();
+    podglad.style.display = "flex";
+}
+
+function wyswietlAktualneZdjecie() {
+    const zdjecie = zdjeciaPodgladu[aktualneZdjecie];
+    if (!zdjecie) return;
+
+    duzeZdjecie.src = zdjecie.src;
+    duzeZdjecie.alt = zdjecie.alt;
+
+    document.getElementById("licznikZdjec").textContent =
+        `${aktualneZdjecie + 1} / ${zdjeciaPodgladu.length}`;
+
+    document.getElementById("poprzednie").style.display =
+        zdjeciaPodgladu.length > 1 ? "flex" : "none";
+
+    document.getElementById("nastepne").style.display =
+        zdjeciaPodgladu.length > 1 ? "flex" : "none";
+}
+
+function zmienZdjecie(kierunek) {
+    if (zdjeciaPodgladu.length < 2) return;
+
+    aktualneZdjecie =
+        (aktualneZdjecie + kierunek + zdjeciaPodgladu.length)
+        % zdjeciaPodgladu.length;
+
+    wyswietlAktualneZdjecie();
 }
 
 function zamknij() {
-    document.getElementById("podglad").style.display = "none";
+    podglad.style.display = "none";
+    duzeZdjecie.src = "";
 }
 
-document.getElementById("duzeZdjecie").addEventListener("click", e => {
+document.getElementById("poprzednie").addEventListener("click", e => {
+    e.stopPropagation();
+    zmienZdjecie(-1);
+});
+
+document.getElementById("nastepne").addEventListener("click", e => {
+    e.stopPropagation();
+    zmienZdjecie(1);
+});
+
+document.getElementById("zamknij").addEventListener("click", zamknij);
+
+duzeZdjecie.addEventListener("click", e => {
     e.stopPropagation();
 });
+
+podglad.addEventListener("click", e => {
+    if (e.target === podglad) zamknij();
+});
+
+document.addEventListener("keydown", e => {
+    if (podglad.style.display !== "flex") return;
+
+    if (e.key === "ArrowRight") zmienZdjecie(1);
+    if (e.key === "ArrowLeft") zmienZdjecie(-1);
+    if (e.key === "Escape") zamknij();
+});
+
+podglad.addEventListener("touchstart", e => {
+    dotykStart = e.changedTouches[0].clientX;
+}, { passive: true });
+
+podglad.addEventListener("touchend", e => {
+    const roznica = e.changedTouches[0].clientX - dotykStart;
+
+    if (Math.abs(roznica) > 50) {
+        zmienZdjecie(roznica < 0 ? 1 : -1);
+    }
+}, { passive: true });
 
 pobierzAlbumy();
 </script>

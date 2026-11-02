@@ -291,7 +291,7 @@ footer{
     }
 }
 
-    
+
 </style>
 </head>
 
@@ -397,13 +397,13 @@ Jest to moja pierwsza strona na której będą jeszcze zachodziły zmiany.
 
     <div id="listaAkcji" style="display:none; margin-top:25px;">
 
-        <h2>📋 Lista wyjazdów</h2>
+    <h2>📋 Lista wyjazdów</h2>
 
-        <p>
-            Tutaj będą wyświetlane informacje o wyjazdach i działaniach ratowniczych.
-        </p>
-
+    <div id="akcjeZBazy">
+        <p>Ładowanie listy wyjazdów...</p>
     </div>
+
+</div>
 
 </div>
 
@@ -443,6 +443,56 @@ function pokazAkcje() {
         lista.style.display = "none";
     }
 }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+
+<script>
+async function pobierzAkcje() {
+    const lista = document.getElementById("akcjeZBazy");
+
+    const { data, error } = await supabaseClient
+        .from("akcje")
+        .select("*")
+        .order("data_zdarzenia", { ascending: false })
+        .order("created_at", { ascending: false });
+
+    if (error) {
+        lista.textContent = "Nie udało się pobrać listy wyjazdów.";
+        console.error(error);
+        return;
+    }
+
+    lista.innerHTML = "";
+
+    if (data.length === 0) {
+        lista.textContent = "Nie dodano jeszcze żadnych wyjazdów.";
+        return;
+    }
+
+    data.forEach(akcja => {
+        const wpis = document.createElement("div");
+        wpis.style.cssText = "background:#18243a; padding:20px; margin-top:15px; border-radius:10px; text-align:left;";
+
+        const tytul = document.createElement("h3");
+        tytul.textContent = akcja.tytul;
+
+        const dataAkcji = document.createElement("p");
+        dataAkcji.textContent = "📅 Data: " + akcja.data_zdarzenia;
+
+        const miejsce = document.createElement("p");
+        miejsce.textContent = "📍 Miejsce: " + (akcja.miejsce || "Nie podano");
+
+        const opis = document.createElement("p");
+        opis.textContent = akcja.opis;
+
+        wpis.append(tytul, dataAkcji, miejsce, opis);
+        lista.appendChild(wpis);
+    });
+}
+
+document.addEventListener("DOMContentLoaded", pobierzAkcje);
 </script>
 
 </body>

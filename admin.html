@@ -1,0 +1,253 @@
+
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel administratora - Rysiu998</title>
+
+    <style>
+        body {
+            background: #0b1424;
+            color: white;
+            font-family: Arial, sans-serif;
+            padding: 25px;
+            max-width: 800px;
+            margin: auto;
+        }
+
+        h1, h2 {
+            color: #ff3333;
+        }
+
+        input, textarea {
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px;
+            margin: 10px 0 18px;
+            border-radius: 6px;
+            border: 1px solid #555;
+            background: #18243a;
+            color: white;
+        }
+
+        button {
+            background: #e32636;
+            color: white;
+            border: 0;
+            padding: 12px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        .wpis {
+            background: #18243a;
+            padding: 18px;
+            margin: 15px 0;
+            border-radius: 8px;
+        }
+
+        #panel {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🔐 Panel administratora</h1>
+
+    <div id="logowanie">
+        <h2>Logowanie</h2>
+
+        <input id="email" type="email" placeholder="Adres e-mail">
+
+        <input id="haslo" type="password" placeholder="Hasło">
+
+        <button onclick="zaloguj()">Zaloguj się</button>
+    </div>
+
+    <div id="panel">
+        <h2>Dodaj lub edytuj akcję</h2>
+
+        <form id="formularz">
+            <input id="tytul" type="text" placeholder="Tytuł akcji" required>
+
+            <label>Data zdarzenia:</label>
+            <input id="data" type="date" required>
+
+            <input id="miejsce" type="text" placeholder="Miejsce">
+
+            <textarea id="opis" placeholder="Opis akcji" rows="5" required></textarea>
+
+            <button type="submit">Zapisz akcję</button>
+            <button type="button" onclick="wyczyscFormularz()">Wyczyść formularz</button>
+        </form>
+
+        <h2>📋 Istniejące akcje</h2>
+        <div id="listaAdmina"></div>
+
+        <button onclick="wyloguj()">Wyloguj się</button>
+    </div>
+
+    <p><a href="index.html" style="color:white;">← Powrót na stronę</a></p>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.js"></script>
+
+    <script>
+        const ADMIN_ID = "2447a762-936a-4ba0-9c29-f55f41a4eca9";
+        let edytowaneId = null;
+
+        async function zaloguj() {
+            const email = document.getElementById("email").value;
+            const haslo = document.getElementById("haslo").value;
+
+            const { data, error } = await supabaseClient.auth.signInWithPassword({
+                email: email,
+                password: haslo
+            });
+
+            if (error) {
+                alert("Błąd logowania: " + error.message);
+                return;
+            }
+
+            if (data.user.id !== ADMIN_ID) {
+                await supabaseClient.auth.signOut();
+                alert("To konto nie ma uprawnień administratora.");
+                return;
+            }
+
+            pokazPanel();
+        }
+
+        async function sprawdzLogowanie() {
+            const { data } = await supabaseClient.auth.getUser();
+
+            if (data.user && data.user.id === ADMIN_ID) {
+                pokazPanel();
+            }
+        }
+
+        function pokazPanel() {
+            document.getElementById("logowanie").style.display = "none";
+            document.getElementById("panel").style.display = "block";
+            pobierzListeAdmina();
+        }
+
+        async function wyloguj() {
+            await supabaseClient.auth.signOut();
+            location.reload();
+        }
+
+        function wyczyscFormularz() {
+            document.getElementById("formularz").reset();
+            edytowaneId = null;
+        }
+
+        document.getElementById("formularz").addEventListener("submit", async function(e) {
+            e.preventDefault();
+
+            const wpis = {
+                tytul: document.getElementById("tytul").value,
+                data_zdarzenia: document.getElementById("data").value,
+                miejsce: document.getElementById("miejsce").value,
+                opis: document.getElementById("opis").value
+            };
+
+            let wynik;
+
+            if (edytowaneId === null) {
+                wynik = await supabaseClient.from("akcje").insert(wpis);
+            } else {
+                wynik = await supabaseClient.from("akcje")
+                    .update(wpis)
+                    .eq("id", edytowaneId);
+            }
+
+            if (wynik.error) {
+                alert("Nie udało się zapisać: " + wynik.error.message);
+                return;
+            }
+
+            alert("Akcja została zapisana!");
+            wyczyscFormularz();
+            pobierzListeAdmina();
+        });
+
+        async function pobierzListeAdmina() {
+            const lista = document.getElementById("listaAdmina");
+
+            const { data, error } = await supabaseClient
+                .from("akcje")
+                .select("*")
+                .order("data_zdarzenia", { ascending: false })
+                .order("created_at", { ascending: false });
+
+            if (error) {
+                lista.textContent = "Nie udało się pobrać akcji.";
+                return;
+            }
+
+            lista.innerHTML = "";
+
+            data.forEach(akcja => {
+                const wpis = document.createElement("div");
+                wpis.className = "wpis";
+
+                const tytul = document.createElement("h3");
+                tytul.textContent = akcja.tytul;
+
+                const opis = document.createElement("p");
+                opis.textContent = akcja.opis;
+
+                const edytuj = document.createElement("button");
+                edytuj.textContent = "Edytuj";
+                edytuj.onclick = () => {
+                    document.getElementById("tytul").value = akcja.tytul;
+                    document.getElementById("data").value = akcja.data_zdarzenia;
+                    document.getElementById("miejsce").value = akcja.miejsce || "";
+                    document.getElementById("opis").value = akcja.opis;
+                    edytowaneId = akcja.id;
+                    window.scrollTo(0, 0);
+                };
+
+                const usun = document.createElement("button");
+                usun.textContent = "Usuń";
+                usun.onclick = () => usunAkcje(akcja.id);
+
+                wpis.append(tytul, opis, edytuj, usun);
+                lista.appendChild(wpis);
+            });
+
+            if (data.length === 0) {
+                lista.textContent = "Nie dodano jeszcze żadnych akcji.";
+            }
+        }
+
+        async function usunAkcje(id) {
+            if (!confirm("Czy na pewno chcesz usunąć tę akcję?")) {
+                return;
+            }
+
+            const { error } = await supabaseClient
+                .from("akcje")
+                .delete()
+                .eq("id", id);
+
+            if (error) {
+                alert("Nie udało się usunąć: " + error.message);
+                return;
+            }
+
+            alert("Akcja została usunięta.");
+            pobierzListeAdmina();
+        }
+
+        sprawdzLogowanie();
+    </script>
+
+</body>
+</html>
